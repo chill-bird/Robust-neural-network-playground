@@ -8,7 +8,7 @@ SCREEN_HEIGHT = 500
 SCREEN_TITLE = "Tests"
 
 # TODO
-MOVEMENT_SPEED_dummy = 5 
+MOVEMENT_SPEED_dummy = 5
 
 
 class Bat(arcade.Sprite):
@@ -52,15 +52,14 @@ class MyGame(arcade.Window):
         arcade.set_background_color(arcade.color.BLUE_GRAY)
 
     # TODO
-    def setup(self): 
+    def setup(self):
         """ Start a new game """
 
         # Create the Sprite lists
         self.bat_list = arcade.SpriteList()
         self.stick_list = arcade.SpriteList()
- 
+
         # Add Bat to displayed scene
-        # TODO: Centering on resize
         self.bat_sprite = Bat(":resources:images/tiles/planetHalf.png", 1)
         self.bat_sprite.center_x = arcade.get_viewport()[1]/2
         self.bat_sprite.center_y = 20
@@ -78,7 +77,7 @@ class MyGame(arcade.Window):
         # Call the parent. Failing to do this will mess up the coordinates,
         # and default to 0,0 at the center and the edges being -1 to 1.
         super().on_resize(width, height)
-    
+
     def on_draw(self):
         """ Render the screen. """
 
@@ -104,7 +103,6 @@ class MyGame(arcade.Window):
         if key == arcade.key.LEFT or key == arcade.key.A \
             or key == arcade.key.RIGHT or key == arcade.key.D:
             self.bat_sprite.change_x = 0
-            self.stick_sprite.change_x = 0
 
     # TODO
     def on_update(self, delta_time):
