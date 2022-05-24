@@ -9,6 +9,9 @@ import gym
 from gym import logger, spaces
 from gym.error import DependencyNotInstalled
 
+import pygame
+from pygame import gfxdraw
+
 class CartPoleEnv(gym.Env[np.ndarray, int | np.ndarray]):
     """
     ### Description
@@ -63,11 +66,12 @@ class CartPoleEnv(gym.Env[np.ndarray, int | np.ndarray]):
         self.length = 0.5  # actually half the pole's length
         self.polemass_length = self.masspole * self.length
         self.force_mag = 10.0
-        self.tau = 0.01  # seconds between state updates
+        self.tau = 0.001  # seconds between state updates
         self.kinematics_integrator = "euler"
 
         # Angle at which to fail the episode
         self.theta_threshold_radians = 12 * 2 * math.pi / 360
+        # x-Coordinate of cart to fail the episode
         self.x_threshold = 2.4
 
         # Absolute values of observable positions and angles of cart and pole
@@ -90,6 +94,10 @@ class CartPoleEnv(gym.Env[np.ndarray, int | np.ndarray]):
         self.state = None
 
         self.steps_beyond_done = None
+
+        # Pole Image
+        self.pole_image = pygame.image.load("pole.png")
+        self.pole_rect = None
 
     def step(self, action):
         """ Process one action and return current state, reward, failure condition, """
@@ -185,80 +193,79 @@ class CartPoleEnv(gym.Env[np.ndarray, int | np.ndarray]):
 
     def render(self, mode="human"):
         """ Render Cartpole Environment """
-        try:
-            import pygame
-            from pygame import gfxdraw
-        except ImportError:
-            raise DependencyNotInstalled(
-                "pygame is not installed, run `pip install gym[classic_control]`"
-            )
 
         screen_width = 600
         screen_height = 400
 
         world_width = self.x_threshold * 2
         scale = screen_width / world_width
-        polewidth = 10.0
-        polelen = scale * (2 * self.length)
-        cartwidth = 50.0
-        cartheight = 30.0
-
+ 
         # Do not render if there is no state
         if self.state is None:
             return None
 
-        x = self.state
-
+        # Initialize Screen and Clock if it doesn't exist yet
         if self.screen is None:
             pygame.init()
             pygame.display.init()
             self.screen = pygame.display.set_mode((screen_width, screen_height))
+            
+            # TODO: Convert all images
+            # Optimize image format
+            self.pole_image.convert()
+            # Scale pole image correctly
+            self.pole_image = pygame.transform.rotozoom(self.pole_image, 0, scale/self.pole_image.get_height())
+
         if self.clock is None:
             self.clock = pygame.time.Clock()
-
+ 
+        # Background
         self.surf = pygame.Surface((screen_width, screen_height))
         self.surf.fill((255, 255, 255))
 
+        # Draw Cart
+        cartwidth = 50.0
+        cartheight = 30.0
         l, r, t, b = -cartwidth / 2, cartwidth / 2, cartheight / 2, -cartheight / 2
         axleoffset = cartheight / 4.0
-        cartx = x[0] * scale + screen_width / 2.0  # MIDDLE OF CART
-        carty = 100  # TOP OF CART
+        cart_x = self.state[0] * scale + screen_width / 2.0  # MIDDLE OF CART
+        cart_y = 100                                    # TOP OF CART 
         cart_coords = [(l, b), (l, t), (r, t), (r, b)]
-        cart_coords = [(c[0] + cartx, c[1] + carty) for c in cart_coords]
+        cart_coords = [(c[0] + cart_x, c[1] + cart_y) for c in cart_coords]
         gfxdraw.aapolygon(self.surf, cart_coords, (0, 0, 0))
         gfxdraw.filled_polygon(self.surf, cart_coords, (0, 0, 0))
+ 
+        # Draw Pole
+        pole = self.pole_image
+        polelen = scale * (2 * self.length) # self.length is half the length
+        polewidth = self.pole_image.get_width()
+        pole_angle = -self.state[2]
+        # Create a vector representing the pole from bottom to center
+        pole_vector = pygame.math.Vector2(0,polelen/2).rotate_rad(self.state[2])
+        pole_x = pole_vector[0] + cart_x
+        pole_y = pole_vector[1] + cart_y + axleoffset
+        pole = pygame.transform.rotate(pole, 180+math.degrees(pole_angle))
+        pole_rect = pole.get_rect(center=(pole_x, pole_y))
+        self.surf.blit(pole, pole_rect)
 
-        l, r, t, b = (
-            -polewidth / 2,
-            polewidth / 2,
-            polelen - polewidth / 2,
-            -polewidth / 2,
-        )
-
-        pole_coords = []
-        for coord in [(l, b), (l, t), (r, t), (r, b)]:
-            coord = pygame.math.Vector2(coord).rotate_rad(-x[2])
-            coord = (coord[0] + cartx, coord[1] + carty + axleoffset)
-            pole_coords.append(coord)
-        gfxdraw.aapolygon(self.surf, pole_coords, (202, 152, 101))
-        gfxdraw.filled_polygon(self.surf, pole_coords, (202, 152, 101))
-
+        # Draw Pivot Point
         gfxdraw.aacircle(
             self.surf,
-            int(cartx),
-            int(carty + axleoffset),
+            int(cart_x),
+            int(cart_y + axleoffset),
             int(polewidth / 2),
             (129, 132, 203),
         )
         gfxdraw.filled_circle(
             self.surf,
-            int(cartx),
-            int(carty + axleoffset),
+            int(cart_x),
+            int(cart_y + axleoffset),
             int(polewidth / 2),
             (129, 132, 203),
         )
 
-        gfxdraw.hline(self.surf, 0, screen_width, carty, (0, 0, 0))
+        # Draw movement axis
+        gfxdraw.hline(self.surf, 0, screen_width, cart_y, (0, 0, 0))
 
         self.surf = pygame.transform.flip(self.surf, False, True)
         self.screen.blit(self.surf, (0, 0))
