@@ -22,7 +22,7 @@ def render(x_cart, angle, animation_width):
     ax.set(xlim=[0, width], ylim=[0, height])
     ax.set_aspect("equal")
 
-    scale = width/animation_width
+    scale = 0.7 * width/animation_width
 
     # Cart ---------------------------
     cart_length = 1 * scale
