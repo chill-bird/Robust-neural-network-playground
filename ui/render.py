@@ -6,12 +6,8 @@ from matplotlib.patches import Polygon
 from PIL import Image
 import os
 # Testing purposes
-import random
+import random    
 
-def rot_matrix_2x2(rad_angle):
-    """ Receive an angle in radians and create a rotation matrix from said angle """
-    return 
-    
 
 def render(x_cart, angle, animation_width):
     """ Receive x coordinate of a cart and angle(rad) of the pole and draw a scene """
@@ -88,18 +84,23 @@ def gif(filenames):
         images.append(frame)
     images[0].save("cartpole.gif", save_all=True, append_images=images[1:], duration=100)
 
-frame_files = []
+def main():
+        
+    frame_files = []
 
-for i in range(10):
-    frame = render(random.randint(-5,5),math.radians(random.randint(-360, 360)), 2*4.8)
-    filename = "frames/" + str(i) + ".png"
-    frame.savefig(filename)    
-    frame_files.append(filename)
+    for i in range(10):
+        frame = render(random.randint(-5,5),math.radians(random.randint(-360, 360)), 2*4.8)
+        filename = "frames/" + str(i) + ".png"
+        frame.savefig(filename)    
+        frame_files.append(filename)
 
-gif(frame_files)
+    gif(frame_files)
 
-# Debugging
-edge1 = render(-4.8,0,2*4.8)
-edge2 = render(4.8,0,2*4.8)
-edge1.savefig("frames/edge1.png")
-edge2.savefig("frames/edge2.png")
+    # Debugging
+    edge1 = render(-4.8,0,2*4.8)
+    edge2 = render(4.8,0,2*4.8)
+    edge1.savefig("frames/edge1.png")
+    edge2.savefig("frames/edge2.png")
+
+if __name__ == "__main__":
+    main()
