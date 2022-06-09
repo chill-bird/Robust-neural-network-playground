@@ -52,12 +52,12 @@ def render(x_cart, angle, animation_width):
     draw.ellipse((x_cart-radius, y_offset-radius, x_cart+radius, y_offset+radius), fill=(255,0,0))
 
     # Pole ---------------------------
-    pole_length = 3 * scale
-    pole_resize_factor = pole_length / pole_orig_h
-    pole_width = pole_orig_w * pole_resize_factor
+    pole_height = 3 * scale
+    resize_factor = pole_height / pole_orig_h
+    pole_width = pole_orig_w * resize_factor
 
     # Image resizing & rotating
-    pole_im = pole_orig.resize((round(pole_width), round(pole_length)))
+    pole_im = pole_orig.resize((round(pole_width), round(pole_height)))
     pole_im = pole_im.rotate(math.degrees(angle), expand=1)
 
     # Pole vector
@@ -65,16 +65,32 @@ def render(x_cart, angle, animation_width):
     rot_matrix = np.array([[math.cos(angle), -math.sin(angle)], \
                            [math.sin(angle),  math.cos(angle)]])
     pole_vector = np.dot(rot_matrix,
-                         np.array([0, - pole_length/2])) 
+                         np.array([0, - pole_height/2])) 
 
     # Pole upper left corner coordinates
     # Starting at the center of the pole, subtract edge length of new, rotated image
-    pole_x_left  = x_cart   - pole_vector[0] - (pole_im.size[0] / 2)
-    pole_y_upper = y_cart + pole_vector[1] - (pole_im.size[1] / 2)
-    assert(pole_x_left >= 0 and pole_y_upper >= 0), "Pole outside of the canvas"
+    pole_left  = x_cart - pole_vector[0] - (pole_im.size[0] / 2)
+    pole_upper = y_cart + pole_vector[1] - (pole_im.size[1] / 2)
 
-    # Placing images
-    canvas.paste(pole_im, (round(pole_x_left), round(pole_y_upper)), mask=pole_im)
+    # Placing image
+    canvas.paste(pole_im, (round(pole_left), round(pole_upper)), mask=pole_im)
+
+    # Flame ---------------------------
+    flame_height = 3 * scale
+    resize_factor = flame_height / flame_orig_h
+    flame_width = flame_orig_w * resize_factor
+
+    # Image resizing & rotating
+    flame_im = flame_orig.resize((round(flame_width), round(flame_height)))
+
+    # Flame upper left corner coordinates
+    # Starting at the tip of the pole
+    flame_x_offset = 0.03 * flame_im.size[0] # flame graphic is slightly off-centered
+    flame_left  = x_cart - 2*pole_vector[0] - (flame_im.size[0] / 2) + flame_x_offset
+    flame_upper = y_cart + 2*pole_vector[1] - (flame_im.size[0] / 2)
+
+    # Placing image
+    canvas.paste(flame_im, (round(flame_left), round(flame_upper)), mask=flame_im)
 
     # Debugging
     # ax.text(800, 500, str(math.degrees(angle)) + "°")
