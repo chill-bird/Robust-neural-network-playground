@@ -1,6 +1,6 @@
 import numpy as np
 import math
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 import os
 # Testing purposes
 import random    
@@ -93,8 +93,7 @@ def render(x_cart, angle, animation_width):
     canvas.paste(flame_im, (round(flame_left), round(flame_upper)), mask=flame_im)
 
     # Debugging
-    # ax.text(800, 500, str(math.degrees(angle)) + "°")
-    # plt.show()
+    draw.text((800, 50), f"{math.degrees(angle)}°", fill=(0,0,0), font=ImageFont.truetype("NotoSans-Regular.ttf", 20), align="right")
 
     return canvas    
 
