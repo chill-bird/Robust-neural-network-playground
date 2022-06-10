@@ -3,32 +3,33 @@ import math
 from PIL import Image, ImageDraw, ImageFont
 import os
 # Testing purposes
-import random    
+import random
 
 # Images
+background_orig = Image.open("graphics/background.png")
 pole_orig = Image.open("graphics/pole.png")
 pole_orig_w, pole_orig_h = pole_orig.size
 flame_orig = Image.open("graphics/flame.png")
 flame_orig_w, flame_orig_h = flame_orig.size
 
 def render(x_cart, angle, animation_width):
-    """ 
+    """
     Receive x coordinate of a cart and angle(rad) of the pole and draw a scene.
-    Coordinates start with (0.0) at the upper left corner of the background image. 
+    Coordinates start with (0.0) at the upper left corner of the background image.
     """
 
-    # Canvas ---------------------------
+    # Scene ---------------------------
     width  = 900
     height = 600
     x_offset = width/2
     y_offset = height - height*0.3 # reversed y-axis
 
-    # Create a canvas
-    # TODO: Replace Canvas with background image
-    canvas = Image.new("RGB", (width, height), color=(255,255,255))
+    # Create a scene
+    assert(width/height == background_orig.size[0]/background_orig.size[1]), "Background image must have ratio 3:2"
+    scene = background_orig.resize((width, height))
 
     # Create draw object
-    draw = ImageDraw.Draw(canvas)
+    draw = ImageDraw.Draw(scene)
 
     # Scale
     scale = 0.7 * width/animation_width
@@ -48,7 +49,7 @@ def render(x_cart, angle, animation_width):
     draw.rectangle((l,t,r,b), fill=(0,0,0))
 
     # Cart center
-    radius = scale * 0.05 
+    radius = scale * 0.05
     draw.ellipse((x_cart-radius, y_offset-radius, x_cart+radius, y_offset+radius), fill=(255,0,0))
 
     # Pole ---------------------------
@@ -65,7 +66,7 @@ def render(x_cart, angle, animation_width):
     rot_matrix = np.array([[math.cos(angle), -math.sin(angle)], \
                            [math.sin(angle),  math.cos(angle)]])
     pole_vector = np.dot(rot_matrix,
-                         np.array([0, - pole_height/2])) 
+                         np.array([0, - pole_height/2]))
 
     # Pole upper left corner coordinates
     # Starting at the center of the pole, subtract edge length of new, rotated image
@@ -73,7 +74,7 @@ def render(x_cart, angle, animation_width):
     pole_upper = y_cart + pole_vector[1] - (pole_im.size[1] / 2)
 
     # Placing image
-    canvas.paste(pole_im, (round(pole_left), round(pole_upper)), mask=pole_im)
+    scene.paste(pole_im, (round(pole_left), round(pole_upper)), mask=pole_im)
 
     # Flame ---------------------------
     flame_height = 3 * scale
@@ -90,16 +91,16 @@ def render(x_cart, angle, animation_width):
     flame_upper = y_cart + 2*pole_vector[1] - (flame_im.size[0] / 2)
 
     # Placing image
-    canvas.paste(flame_im, (round(flame_left), round(flame_upper)), mask=flame_im)
+    scene.paste(flame_im, (round(flame_left), round(flame_upper)), mask=flame_im)
 
-    # Debugging
-    draw.text((800, 50), f"{math.degrees(angle)}°", fill=(0,0,0), font=ImageFont.truetype("NotoSans-Regular.ttf", 20), align="right")
+    # Display angle
+    draw.text((800, 50), f"{round(math.degrees(angle), 2)}°", fill=(0,0,0), font=ImageFont.truetype("NotoSans-Regular.ttf", 20), align="right")
 
-    return canvas    
+    return scene
 
 def gif(filenames):
     """ Create GIF from list of images """
-    
+
     images = []
     for file in filenames:
         frame = Image.open(file)
@@ -113,7 +114,7 @@ def main():
     for i in range(10):
         frame = render(random.randint(-5,5),math.radians(random.randint(-360, 360)), 2*4.8)
         filename = "frames/" + str(i) + ".png"
-        frame.save(filename)   
+        frame.save(filename)
         frame_files.append(filename)
 
     gif(frame_files)
