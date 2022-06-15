@@ -1,4 +1,5 @@
 import numpy as np
+from numpy import testing
 import math
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
@@ -10,8 +11,8 @@ import random
 
 def rot_matrix_2x2(rad_angle):
     """ Receive an angle in radians and create a rotation matrix from said angle """
-    return 
-    
+    return
+
 
 def render(x_cart, angle, animation_width):
     """ Receive x coordinate of a cart and angle(rad) of the pole and draw a scene """
@@ -55,11 +56,9 @@ def render(x_cart, angle, animation_width):
     # Pole vector(s)
     rot_matrix = np.array([[math.cos(angle), -math.sin(angle)], \
                            [math.sin(angle),  math.cos(angle)]])
-    pole_vector = np.dot(rot_matrix, # Rotate vector via rotation matrix
-                         np.array([0, pole_length])) 
-    edge_vector = np.dot(rot_matrix, # Rotate vector by angle 
-                         np.array([edge_length/2, 0])) 
-    assert(int(np.dot(pole_vector, edge_vector)) == 0), "Pole Vector and edge vectors must be orthogonal"
+    pole_vector = rot_matrix @ np.array([0, pole_length])   # Rotate vector via rotation matrix
+    edge_vector = rot_matrix @ np.array([edge_length/2, 0]) # Rotate vector by angle
+    np.testing.assert_allclose((pole_vector @ edge_vector), 0, rtol=1e-05, atol=1e-05) # actually, the deviation is kinda randomly chosen :D
 
     # Pole coordinates
     # A) Depiction as vector
@@ -73,15 +72,15 @@ def render(x_cart, angle, animation_width):
     rb = center_vector + edge_vector
     pole_poly = np.array([lb, lt, rt, rb])
     ax.add_patch(patches.Polygon(pole_poly, color="brown"))
-    
+
     # Debugging
     ax.text(800, 500, str(math.degrees(angle)) + "°")
     # plt.show()
-    return fig    
+    return fig
 
 def gif(filenames):
     """ Create GIF from list of images """
-    
+
     images = []
     for file in filenames:
         frame = Image.open(file)
@@ -93,7 +92,7 @@ frame_files = []
 for i in range(10):
     frame = render(random.randint(-5,5),math.radians(random.randint(-360, 360)), 2*4.8)
     filename = "frames/" + str(i) + ".png"
-    frame.savefig(filename)    
+    frame.savefig(filename)
     frame_files.append(filename)
 
 gif(frame_files)
