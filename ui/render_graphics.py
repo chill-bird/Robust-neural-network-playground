@@ -12,6 +12,8 @@ pole_orig_w, pole_orig_h = pole_orig.size
 flame_orig = Image.open("graphics/flame.png")
 flame_orig_w, flame_orig_h = flame_orig.size
 
+# TODO: Do scaling of images only once for performance
+
 def render(x_cart, angle, animation_width):
     """
     Receive x coordinate of a cart and angle(rad) of the pole and draw a scene.
@@ -48,7 +50,7 @@ def render(x_cart, angle, animation_width):
     b = round(y_cart + 0.5*cart_height)
     draw.rectangle((l,t,r,b), fill=(0,0,0))
 
-    # Cart center
+    # Draw cart center
     radius = scale * 0.05
     draw.ellipse((x_cart-radius, y_offset-radius, x_cart+radius, y_offset+radius), fill=(255,0,0))
 
@@ -65,8 +67,7 @@ def render(x_cart, angle, animation_width):
     # Vector pointing from the cart center to the center of the pole position
     rot_matrix = np.array([[math.cos(angle), -math.sin(angle)], \
                            [math.sin(angle),  math.cos(angle)]])
-    pole_vector = np.dot(rot_matrix,
-                         np.array([0, - pole_height/2]))
+    pole_vector = rot_matrix @ np.array([0, - pole_height/2])
 
     # Pole upper left corner coordinates
     # Starting at the center of the pole, subtract edge length of new, rotated image
@@ -94,6 +95,12 @@ def render(x_cart, angle, animation_width):
     scene.paste(flame_im, (round(flame_left), round(flame_upper)), mask=flame_im)
 
     # Display angle
+    # TODO: Replace magic numbers
+    l = 780
+    r = 880
+    t = 50
+    b = 80
+    draw.rectangle((l,t,r,b), fill=(255,255,255))
     draw.text((800, 50), f"{round(math.degrees(angle), 2)}°", fill=(0,0,0), font=ImageFont.truetype("NotoSans-Regular.ttf", 20), align="right")
 
     return scene
@@ -107,7 +114,7 @@ def gif(filenames):
         images.append(frame)
     images[0].save("cartpole.gif", save_all=True, append_images=images[1:], duration=100)
 
-def main():
+def test():
 
     frame_files = []
 
@@ -124,6 +131,3 @@ def main():
     edge2 = render(4.8,0,2*4.8)
     edge1.save("frames/edge1.png")
     edge2.save("frames/edge2.png")
-
-if __name__ == "__main__":
-    main()

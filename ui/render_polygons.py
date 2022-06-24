@@ -87,18 +87,21 @@ def gif(filenames):
         images.append(frame)
     images[0].save("cartpole.gif", save_all=True, append_images=images[1:], duration=100)
 
-frame_files = []
 
-for i in range(10):
-    frame = render(random.randint(-5,5),math.radians(random.randint(-360, 360)), 2*4.8)
-    filename = "frames/" + str(i) + ".png"
-    frame.savefig(filename)
-    frame_files.append(filename)
+def test():
+    frame_files = []
 
-gif(frame_files)
+    for i in range(10):
+        frame = render(random.randint(-5,5),math.radians(random.randint(-360, 360)), 2*4.8)
+        filename = "frames/" + str(i) + ".png"
+        frame.savefig(filename)
+        plt.close(frame)
+        frame_files.append(filename)
 
-# Debugging
-edge1 = render(-4.8,0,2*4.8)
-edge2 = render(4.8,0,2*4.8)
-edge1.savefig("frames/edge1.png")
-edge2.savefig("frames/edge2.png")
+    gif(frame_files)
+
+    # Debugging
+    edge1 = render(-4.8,0,2*4.8)
+    edge2 = render(4.8,0,2*4.8)
+    edge1.savefig("frames/edge1.png")
+    edge2.savefig("frames/edge2.png")
