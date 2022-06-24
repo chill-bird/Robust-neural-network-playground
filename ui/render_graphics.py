@@ -115,6 +115,10 @@ def gif(filenames):
     images[0].save("cartpole.gif", save_all=True, append_images=images[1:], duration=100)
 
 def test():
+    """ Test rendering with random values """
+
+    if not (os.path.isdir("frames/")):
+        os.makedirs("frames/")
 
     frame_files = []
 

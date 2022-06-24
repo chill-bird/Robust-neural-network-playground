@@ -89,6 +89,11 @@ def gif(filenames):
 
 
 def test():
+    """ Test rendering with random values """
+
+    if not (os.path.isdir("frames/")):
+        os.makedirs("frames/")
+
     frame_files = []
 
     for i in range(10):
