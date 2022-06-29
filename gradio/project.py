@@ -1,4 +1,5 @@
 import gradio as gr
+import render
 
 def picture():
 	return gr.Image("frame.png", show_label=False)
@@ -6,6 +7,9 @@ def picture():
 def get_numbers(ratio, noise, size):
 	my_list = [ratio, noise, size]
 	return my_list
+
+frame = render.render(0, 0, 10)
+frame.save("frame.png")
 
 slider_if = gr.Interface(get_numbers,
 	 	         inputs=[gr.Slider(10, 90, step="number"),
