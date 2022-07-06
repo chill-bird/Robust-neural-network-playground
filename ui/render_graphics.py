@@ -5,14 +5,38 @@ import os
 # Testing purposes
 import random
 
-# Images
-background_orig = Image.open("graphics/background.png")
-pole_orig = Image.open("graphics/pole.png")
-pole_orig_w, pole_orig_h = pole_orig.size
-flame_orig = Image.open("graphics/flame.png")
-flame_orig_w, flame_orig_h = flame_orig.size
-
-# TODO: Do scaling of images only once for performance
+# Scaled images as global variables to enhance performance
+# Load Images ---------------------------
+background_im = Image.open("graphics/background.png")
+pole_im = Image.open("graphics/pole.png")
+pole_im_w, pole_im_h = pole_im.size
+flame_im = Image.open("graphics/flame.png")
+flame_im_w, flame_im_h = flame_im.size
+# Scaling ---------------------------
+width  = 900
+height = 600
+x_offset = width/2
+y_offset = height - height*0.3 # reversed y-axis
+animation_width = 2*4.8;
+scale = 0.7 * width/animation_width
+# Create a scene
+assert(width/height == background_im.size[0]/background_im.size[1]), "Background image must have ratio 3:2"
+background_im = background_im.resize((width, height))
+# Cart ---------------------------
+cart_length = 2 * scale
+cart_height = 0.6 * cart_length
+# Pole ---------------------------
+pole_height = 3 * scale
+resize_factor = pole_height / pole_im_h
+pole_width = pole_im_w * resize_factor
+# Image resizing & rotating
+pole_im = pole_im.resize((round(pole_width), round(pole_height)))
+# Flame ---------------------------
+flame_height = 3 * scale
+resize_factor = flame_height / flame_im_h
+flame_width = flame_im_w * resize_factor
+# Image resizing & rotating
+flame_im = flame_im.resize((round(flame_width), round(flame_height)))
 
 def render(x_cart, angle, animation_width):
     """
@@ -21,25 +45,11 @@ def render(x_cart, angle, animation_width):
     """
 
     # Scene ---------------------------
-    width  = 900
-    height = 600
-    x_offset = width/2
-    y_offset = height - height*0.3 # reversed y-axis
-
-    # Create a scene
-    assert(width/height == background_orig.size[0]/background_orig.size[1]), "Background image must have ratio 3:2"
-    scene = background_orig.resize((width, height))
-
+    scene = background_im.copy()
     # Create draw object
     draw = ImageDraw.Draw(scene)
 
-    # Scale
-    scale = 0.7 * width/animation_width
-
     # Cart ---------------------------
-    cart_length = 2 * scale
-    cart_height = 0.6 * cart_length
-
     x_cart = scale * x_cart + x_offset # Scale x_coordinate and add offset
     y_cart = y_offset
 
@@ -55,14 +65,8 @@ def render(x_cart, angle, animation_width):
     draw.ellipse((x_cart-radius, y_offset-radius, x_cart+radius, y_offset+radius), fill=(255,0,0))
 
     # Pole ---------------------------
-    pole_height = 3 * scale
-    resize_factor = pole_height / pole_orig_h
-    pole_width = pole_orig_w * resize_factor
-
-    # Image resizing & rotating
-    pole_im = pole_orig.resize((round(pole_width), round(pole_height)))
-    pole_im = pole_im.rotate(math.degrees(angle), expand=1)
-
+    pole = pole_im.copy()
+    pole = pole.rotate(math.degrees(angle), expand=1)
     # Pole vector
     # Vector pointing from the cart center to the center of the pole position
     rot_matrix = np.array([[math.cos(angle), -math.sin(angle)], \
@@ -71,28 +75,22 @@ def render(x_cart, angle, animation_width):
 
     # Pole upper left corner coordinates
     # Starting at the center of the pole, subtract edge length of new, rotated image
-    pole_left  = x_cart - pole_vector[0] - (pole_im.size[0] / 2)
-    pole_upper = y_cart + pole_vector[1] - (pole_im.size[1] / 2)
+    pole_left  = x_cart - pole_vector[0] - (pole.size[0] / 2)
+    pole_upper = y_cart + pole_vector[1] - (pole.size[1] / 2)
 
     # Placing image
-    scene.paste(pole_im, (round(pole_left), round(pole_upper)), mask=pole_im)
+    scene.paste(pole, (round(pole_left), round(pole_upper)), mask=pole)
 
     # Flame ---------------------------
-    flame_height = 3 * scale
-    resize_factor = flame_height / flame_orig_h
-    flame_width = flame_orig_w * resize_factor
-
-    # Image resizing & rotating
-    flame_im = flame_orig.resize((round(flame_width), round(flame_height)))
-
+    flame = flame_im.copy()
     # Flame upper left corner coordinates
     # Starting at the tip of the pole
-    flame_x_offset = 0.03 * flame_im.size[0] # flame graphic is slightly off-centered
-    flame_left  = x_cart - 2*pole_vector[0] - (flame_im.size[0] / 2) + flame_x_offset
-    flame_upper = y_cart + 2*pole_vector[1] - (flame_im.size[0] / 2)
+    flame_x_offset = 0.03 * flame.size[0] # flame graphic is slightly off-centered
+    flame_left  = x_cart - 2*pole_vector[0] - (flame.size[0] / 2) + flame_x_offset
+    flame_upper = y_cart + 2*pole_vector[1] - (flame.size[0] / 2)
 
     # Placing image
-    scene.paste(flame_im, (round(flame_left), round(flame_upper)), mask=flame_im)
+    scene.paste(flame, (round(flame_left), round(flame_upper)), mask=flame)
 
     # Display angle
     # TODO: Replace magic numbers
