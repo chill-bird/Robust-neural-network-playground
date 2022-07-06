@@ -42,7 +42,7 @@ flame_im = flame_im.resize((round(flame_width), round(flame_height)))
 
 def render(x_cart, angle, game_over=False):
     """
-    Receive x coordinate of a cart and angle(rad) of the pole and draw a scene.
+    Receive x coordinate of a cart and angle(rad) of the pole and return an RGB array of the drawn scene.
     Coordinates start with (0.0) at the upper left corner of the background image.
     """
 
@@ -106,7 +106,7 @@ def render(x_cart, angle, game_over=False):
     draw.rectangle((l,t,r,b), fill=(255,255,255))
     draw.text((800, 50), f"{round(math.degrees(angle), 2)}°", fill=(0,0,0), font=ImageFont.truetype("NotoSans-Regular.ttf", 20), align="right")
 
-    return scene
+    return np.array(scene)
 
 def gif(filenames):
     """ Create GIF from list of images """
@@ -126,7 +126,7 @@ def test():
     frame_files = []
 
     for i in range(10):
-        frame = render(random.randint(-5,5),math.radians(random.randint(-360, 360)))
+        frame = Image.fromarray(render(random.randint(-5,5),math.radians(random.randint(-360, 360))))
         filename = "frames/" + str(i) + ".png"
         frame.save(filename)
         frame_files.append(filename)
@@ -134,9 +134,9 @@ def test():
     gif(frame_files)
 
     # Debugging
-    edge1 = render(-4.8,0)
-    edge2 = render(4.8,0)
-    gameover_screen = render(random.randint(-5,5),math.radians(random.randint(-360, 360)), game_over=True)
+    edge1 = Image.fromarray(render(-4.8,0))
+    edge2 = Image.fromarray(render(4.8,0))
+    gameover_screen = Image.fromarray(render(random.randint(-5,5),math.radians(random.randint(-360, 360)), game_over=True))
     edge1.save("frames/edge1.png")
     edge2.save("frames/edge2.png")
     gameover_screen.save("frames/gameover.png")
