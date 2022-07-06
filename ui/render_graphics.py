@@ -8,6 +8,7 @@ import random
 # Scaled images as global variables to enhance performance
 # Load Images ---------------------------
 background_im = Image.open("graphics/background.png")
+gameover_im = Image.open("graphics/gameover.png")
 pole_im = Image.open("graphics/pole.png")
 pole_im_w, pole_im_h = pole_im.size
 flame_im = Image.open("graphics/flame.png")
@@ -22,6 +23,7 @@ scale = 0.7 * width/animation_width
 # Create a scene
 assert(width/height == background_im.size[0]/background_im.size[1]), "Background image must have ratio 3:2"
 background_im = background_im.resize((width, height))
+gameover_im = gameover_im.resize((width, height))
 # Cart ---------------------------
 cart_length = 2 * scale
 cart_height = 0.6 * cart_length
@@ -38,14 +40,17 @@ flame_width = flame_im_w * resize_factor
 # Image resizing & rotating
 flame_im = flame_im.resize((round(flame_width), round(flame_height)))
 
-def render(x_cart, angle, animation_width):
+def render(x_cart, angle, game_over=False):
     """
     Receive x coordinate of a cart and angle(rad) of the pole and draw a scene.
     Coordinates start with (0.0) at the upper left corner of the background image.
     """
 
     # Scene ---------------------------
-    scene = background_im.copy()
+    if game_over:
+        scene = gameover_im.copy()
+    else:
+        scene = background_im.copy()
     # Create draw object
     draw = ImageDraw.Draw(scene)
 
@@ -121,7 +126,7 @@ def test():
     frame_files = []
 
     for i in range(10):
-        frame = render(random.randint(-5,5),math.radians(random.randint(-360, 360)), 2*4.8)
+        frame = render(random.randint(-5,5),math.radians(random.randint(-360, 360)))
         filename = "frames/" + str(i) + ".png"
         frame.save(filename)
         frame_files.append(filename)
@@ -129,7 +134,9 @@ def test():
     gif(frame_files)
 
     # Debugging
-    edge1 = render(-4.8,0,2*4.8)
-    edge2 = render(4.8,0,2*4.8)
+    edge1 = render(-4.8,0)
+    edge2 = render(4.8,0)
+    gameover_screen = render(random.randint(-5,5),math.radians(random.randint(-360, 360)), game_over=True)
     edge1.save("frames/edge1.png")
     edge2.save("frames/edge2.png")
+    gameover_screen.save("frames/gameover.png")
