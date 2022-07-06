@@ -9,12 +9,14 @@ import os
 # Testing purposes
 import random
 
+animation_width = 2*4.8
+
 def rot_matrix_2x2(rad_angle):
     """ Receive an angle in radians and create a rotation matrix from said angle """
     return
 
 
-def render(x_cart, angle, animation_width):
+def render(x_cart, angle, game_over=False):
     """ Receive x coordinate of a cart and angle(rad) of the pole and draw a scene """
 
     # Canvas ---------------------------
@@ -97,7 +99,7 @@ def test():
     frame_files = []
 
     for i in range(10):
-        frame = render(random.randint(-5,5),math.radians(random.randint(-360, 360)), 2*4.8)
+        frame = render(random.randint(-5,5),math.radians(random.randint(-360, 360)))
         filename = "frames/" + str(i) + ".png"
         frame.savefig(filename)
         plt.close(frame)
@@ -106,7 +108,7 @@ def test():
     gif(frame_files)
 
     # Debugging
-    edge1 = render(-4.8,0,2*4.8)
-    edge2 = render(4.8,0,2*4.8)
+    edge1 = render(-4.8,0)
+    edge2 = render(4.8,0)
     edge1.savefig("frames/edge1.png")
     edge2.savefig("frames/edge2.png")
