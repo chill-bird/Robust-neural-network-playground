@@ -1,11 +1,21 @@
 # robust-neural-network-playground
 
-### Render Demo
+### Import render_graphics
 
-There are two rendering versions available: **render_polygons.py** and **render_graphics.py**.
+To import render_graphics.py, please insert these lines at the top of your code
+```
+import sys
+import os
+ui_path = os.path.abspath(os.getcwd() + "/ui/") 
+sys.path.append(ui_path)
+from render_graphics import *
+```
 
-To test one of them in the python REPL, move to directory ui with ```cd ui``` and move to your python REPL via ```python```.
-Inside the REPL, import the python file via ```import render_polygons as render``` or ```import render_graphics as render``` and execute the test function via ```render.test()```.
+Now you can simply call render like this from within your code:
+```
+render(x_cart, angle, game_over, episode_num)
+```
+See test_graphics.py as reference.
 
 
 ### Interface
