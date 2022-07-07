@@ -16,5 +16,4 @@ The "project.py" in the "gradio" directory is the old version of the "interface.
 ### ML
 
 Install requirements in ML folder.
-Change path in "sys.path.insert" (ligne 26-27 in neural_network.py) to own path.
-If necessary change device from "CUDA" to "CPU" (ligne 29 in neural_network.py).
+
