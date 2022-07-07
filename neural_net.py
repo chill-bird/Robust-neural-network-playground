@@ -23,7 +23,9 @@ import io
 import sys
 from tqdm import tqdm
 import pandas as pd
-sys.path.insert(1, '[INSERT PATH TO UI HERE]')
+path = os.path.abspath(os.getcwd())
+ui_path = path + '/ui'
+sys.path.insert(1, ui_path)
 from render_graphics import render, gif
 
 if(torch.cuda.is_available()):
@@ -196,14 +198,12 @@ for i_episode in tqdm(range(num_episodes)):
     if(frame_count>3600):
         break
     frame_count = 0
+    float_states = []
     for t in count():
-        frame_count += 1 #we count the frames to later delete them
-        float_state = env.state #for rendering
-        frame = render(float_state[0],float_state[2], 2*4.8) #renders frame 
-
-        #labels frame (relocate this to rendering function later)
-        frame = _label_with_episode_number(frame,episode_num=i_episode) 
-        frames.append(frame) #appends frame to frame list
+        if(t>=3600):
+            break
+        #frame_count += 1 #we count the frames to later delete them
+        float_states.append([env.state[0],env.state[2]]) #for rendering 
         # Select and perform an action
         action = select_action(state)
     
@@ -242,10 +242,11 @@ for i_episode in tqdm(range(num_episodes)):
         new_best = True
         a = best_episode
         print(a)
-    else: #if no best episode is found, delete all useless frames 
-       frames = frames[:-frame_count]
-    if(i_episode==num_episodes): #in case we run out of number of episodes and want to keep going
-        num_episodes +=1 
+        for i in float_states:
+            frame = render(i[0],i[1]) #renders frame
+             #labels frame (relocate this to rendering function later)
+            frame = _label_with_episode_number(frame,episode_num=i_episode)
+            frames.append(frame) #appends frame to frame list
     
 print('Complete')
 env.close()

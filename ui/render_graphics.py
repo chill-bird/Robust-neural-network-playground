@@ -4,14 +4,15 @@ from PIL import Image, ImageDraw, ImageFont
 import os
 # Testing purposes
 import random
-
+path = os.path.abspath(os.getcwd())
 # Scaled images as global variables to enhance performance
 # Load Images ---------------------------
-background_im = Image.open("graphics/background.png")
-gameover_im = Image.open("graphics/gameover.png")
-pole_im = Image.open("graphics/pole.png")
+background_im = Image.open(path + "/ui/graphics/background.png")
+gameover_im = Image.open(path + "/ui/graphics/gameover.png")
+pole_im = Image.open(path + "/ui/graphics/pole.png")
 pole_im_w, pole_im_h = pole_im.size
-flame_im = Image.open("graphics/flame.png")
+flame_im = Image.open(path +"/ui/graphics/flame.png")
+font_path = path+"/ui/NotoSans-Regular.ttf"
 flame_im_w, flame_im_h = flame_im.size
 # Scaling ---------------------------
 width  = 900
@@ -104,7 +105,7 @@ def render(x_cart, angle, game_over=False):
     t = 50
     b = 80
     draw.rectangle((l,t,r,b), fill=(255,255,255))
-    draw.text((800, 50), f"{round(math.degrees(angle), 2)}°", fill=(0,0,0), font=ImageFont.truetype("NotoSans-Regular.ttf", 20), align="right")
+    draw.text((800, 50), f"{round(math.degrees(angle), 2)}°", fill=(0,0,0), font=ImageFont.truetype(font_path, 20), align="right")
 
     return np.array(scene)
 
