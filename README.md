@@ -20,8 +20,8 @@ See test_graphics.py as reference.
 
 ### Interface
 
-You need the "render_graphics.py" from the "ui" directory. It has to be stored as "render.py", in the same directory than the "interface.py" from the "gradio" directory. 
-The "project.py" in the "gradio" directory is the old version of the "interface.py".
+You need the neural_net.py in the same directory.
+Install everything from the ML-Part below
 
 ### ML
 
