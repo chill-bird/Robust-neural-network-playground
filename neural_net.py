@@ -69,14 +69,18 @@ class ReplayMemory(object):
 class DQN(nn.Module):
     def __init__(self, inputs, outputs):
         super(DQN, self).__init__()
-        self.fc1 = nn.Linear(inputs, 128)
-        self.fc2 = nn.Linear(128, outputs)
+        self.fc1 = nn.Linear(inputs, 64)
+        self.fc2 = nn.Linear(64, 128)
+        self.fc3 = nn.Linear(128,64)
+        self.fc4 = nn.Linear(64, outputs)
     # Called with either one element to determine next action, or a batch
     # during optimization. Returns tensor([[left0exp,right0exp]...]).
     def forward(self, x):
         x = x.to(device)
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
+        x = F.relu(self.fc3(x))
+        x = F.relu(self.fc4(x))
         return x
 
 def get_observation():
@@ -84,11 +88,11 @@ def get_observation():
 
 BATCH_SIZE = 64
 GAMMA = 0.999
-EPS_START = 0.9
+EPS_START = 1
 EPS_END = 0.05
-EPS_DECAY = 200
-TARGET_UPDATE = 10
-learningRate = 0.01
+EPS_DECAY = 2500
+TARGET_UPDATE = 1000
+learningRate = 0.001
 
 
 # Get screen size so that we can initialize layers correctly based on shape
@@ -103,7 +107,6 @@ target_net.load_state_dict(policy_net.state_dict())
 target_net.eval()
 
 optimizer = optim.RMSprop(policy_net.parameters(), lr=learningRate)
-memory = ReplayMemory(10000)
 
 def set_batch(size):
     BATCH_SIZE = size
@@ -180,29 +183,21 @@ torch.manual_seed(0)
 random.seed(0)
 np.random.seed(0)
 loss_history = []
-memory = ReplayMemory(10000)
-num_episodes = 1000
+memory = ReplayMemory(65536)
+num_episodes = 3000
 frames = [] #we store the frames in here 
 best_episode=np.NINF #initialize best_episode length
 new_best = False     #variable for new best episode length 
 a = 0                #we use this just to compare the best_episode to this
-frame_count = 0      #frame counter
 for i_episode in tqdm(range(num_episodes)):
     # Initialize the environment and state
     env.reset()
     state = get_observation()
     loss_history.append(0)
 
-    #3600 is exactly 1 minute, we do this because we want an episode 
-    #that lasts longer than 1 minute, can reduce to save time 
-    if(frame_count>3600):
-        break
-    frame_count = 0
     float_states = []
     for t in count():
-        if(t>=3600):
-            break
-        #frame_count += 1 #we count the frames to later delete them
+
         float_states.append([env.state[0],env.state[2]]) #for rendering 
         # Select and perform an action
         action = select_action(state)
@@ -226,6 +221,7 @@ for i_episode in tqdm(range(num_episodes)):
             
         if done:
             episode_durations.append(t + 1)
+            float_states.append([123,123])
             break
 
     #resets new_best 
@@ -235,18 +231,26 @@ for i_episode in tqdm(range(num_episodes)):
         target_net.load_state_dict(policy_net.state_dict())
 
     #this figures out if the last episode is the new best episode    
-    best_episode = max(best_episode, int(episode_durations[-1]))
-    
+    """best_episode = max(best_episode, int(episode_durations[-1]))
     #a is set to the new best episode
     if(a!=best_episode):
         new_best = True
         a = best_episode
-        print(a)
+
+        #renders frames
         for i in float_states:
-            frame = render(i[0],i[1]) #renders frame
-             #labels frame (relocate this to rendering function later)
-            frame = _label_with_episode_number(frame,episode_num=i_episode)
-            frames.append(frame) #appends frame to frame list
+            if(i[0]==123 and i[1] == 123):
+                for j in range(30):
+                    frame=render(float_states[-2][0],float_states[-2][1],True)
+                    frame = _label_with_episode_number(frame,episode_num=i_episode)
+                    frames.append(frame)
+            else:
+                frame = render(i[0],i[1]) #renders frame
+                frame = _label_with_episode_number(frame,episode_num=i_episode)
+                frames.append(frame) #appends frame to frame list
+             #labels frame (relocate this to rendering function later)"""
+           
+           
     
 print('Complete')
 env.close()
@@ -258,13 +262,13 @@ y = loss_history
 x2 = np.arange(len(episode_durations))
 y2 = episode_durations
 plt.plot(x, y)
-plt.show()
+plt.show()        #plot 1 = loss
 plt.plot(x2, y2)
-plt.show()
+plt.show()        #plot 2 = episode durations
 # Initialize the plot
 #combines renderings into gif
-imageio.mimwrite(os.path.join('./videos/', 'render.gif'), frames, fps=60)
-os.system("ffmpeg -y -i ./videos/render.gif -movflags faststart -pix_fmt yuv420p -vf \"scale=trunc(iw/2)*2:trunc(ih/2)*2\" video.mp4")
-print("done")
+#imageio.mimwrite(os.path.join('./videos/', 'render.gif'), frames, fps=60)
+#os.system("ffmpeg -y -i ./videos/render.gif -movflags faststart -pix_fmt yuv420p -vf \"scale=trunc(iw/2)*2:trunc(ih/2)*2\" video.mp4")
+#print("done")
 
 
