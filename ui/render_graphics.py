@@ -22,8 +22,8 @@ height = 600
 x_offset = width/2
 y_offset = height - height*0.3 # reversed y-axis
 # TODO: Replace with value from physics
-animation_width = 2*4.8;
-scale = 0.7 * width/animation_width
+animation_width = 550
+scale = 30 * width/animation_width
 assert(width/height == background_im.size[0]/background_im.size[1]), "Background image must have ratio 3:2"
 
 # Scaled Images ---------------------------

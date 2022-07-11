@@ -2,7 +2,8 @@
 
 ### Import render_graphics
 
-To import render_graphics.py, please insert these lines at the top of your code
+To import render_graphics.py, please ensure that you are outside of the ui directory.
+Insert these lines at the top of your code
 ```
 import sys
 import os
