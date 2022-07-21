@@ -1,6 +1,5 @@
 from operator import truediv
 from re import I
-import gym
 import os
 import math
 import random
@@ -27,24 +26,16 @@ path = os.path.abspath(os.getcwd())
 ui_path = path + '/ui'
 sys.path.insert(1, ui_path)
 from render_graphics import render, gif
+from physics import step, State
 
-if(torch.cuda.is_available()):
+"""if(torch.cuda.is_available()):
     device = torch.device("cuda")
 else:
-    device = torch.device("cpu")
+    device = torch.device("cpu")"""
+device = torch.device("cpu")
 
-env = gym.make('CartPole-v0').unwrapped
+#env = gym.make('CartPole-v0').unwrapped
 
-#remove this later, for labeling the frames with episode number
-def _label_with_episode_number(frame, episode_num):
-    im = Image.fromarray(frame)
-    drawer = ImageDraw.Draw(im)
-    if np.mean(im) < 128:
-        text_color = (255,255,255)
-    else:
-        text_color = (0,0,0)
-    drawer.text((im.size[0]/20,im.size[1]/18), f'Episode: {episode_num+1}', fill=text_color)
-    return im
 
 
 Transition = namedtuple('Transition',
@@ -66,11 +57,13 @@ class ReplayMemory(object):
     def __len__(self):
         return len(self.memory)
 
-class DQN(nn.Module):
-    def __init__(self, inputs, outputs):
-        super(DQN, self).__init__()
-        self.fc1 = nn.Linear(inputs, 128)
-        self.fc2 = nn.Linear(128, outputs)
+
+
+class DQN1(nn.Module):
+    def __init__(self, inputs, nodes1, outputs):
+        super(DQN1, self).__init__()
+        self.fc1 = nn.Linear(inputs, nodes1)
+        self.fc2 = nn.Linear(nodes1, outputs)
     # Called with either one element to determine next action, or a batch
     # during optimization. Returns tensor([[left0exp,right0exp]...]).
     def forward(self, x):
@@ -79,37 +72,106 @@ class DQN(nn.Module):
         x = F.relu(self.fc2(x))
         return x
 
-def get_observation():
-  return torch.tensor(env.state).float().reshape(1,4)
+class DQN2(nn.Module):
+    def __init__(self, inputs, nodes1, nodes2, outputs):
+        super(DQN2, self).__init__()
+        self.fc1 = nn.Linear(inputs, nodes1)
+        self.fc2 = nn.Linear(nodes1, nodes2)
+        self.fc3 = nn.Linear(nodes2, outputs)
+    # Called with either one element to determine next action, or a batch
+    # during optimization. Returns tensor([[left0exp,right0exp]...]).
+    def forward(self, x):
+        x = x.to(device)
+        x = F.relu(self.fc1(x))
+        x = F.relu(self.fc2(x))
+        x = F.relu(self.fc3(x))
+        return x
 
-BATCH_SIZE = 64
-GAMMA = 0.999
+class DQN3(nn.Module):
+    def __init__(self, inputs, nodes1, nodes2, nodes3, outputs):
+        super(DQN3, self).__init__()
+        self.fc1 = nn.Linear(inputs, nodes1)
+        self.fc2 = nn.Linear(nodes1, nodes2)
+        self.fc3 = nn.Linear(nodes2, nodes3)
+        self.fc4 = nn.Linear(nodes3, outputs)
+    # Called with either one element to determine next action, or a batch
+    # during optimization. Returns tensor([[left0exp,right0exp]...]).
+    def forward(self, x):
+        x = x.to(device)
+        x = F.relu(self.fc1(x))
+        x = F.relu(self.fc2(x))
+        x = F.relu(self.fc3(x))
+        x = F.relu(self.fc4(x))
+        return x
+
+"""def get_observation():
+  return torch.tensor(env.state).float().reshape(1,4)"""
+
+GAMMA = 0.8
 EPS_START = 0.9
 EPS_END = 0.05
 EPS_DECAY = 200
-TARGET_UPDATE = 10
-learningRate = 0.01
+TARGET_UPDATE = 100
+
+
+
+
+#optimizer = optim.RMSprop(policy_net.parameters(), lr=learningRate)
+
+def set_batch(size):
+    global BATCH_SIZE
+    BATCH_SIZE = size
+
+def set_learningRate(rate):
+    global optimizer
+    optimizer = optim.RMSprop(policy_net.parameters(), lr=rate)
+
+def set_layers(x):
+    # 1-3 layer
+    global numberOfLayers
+    numberOfLayers = x
+
+def set_neurons1(x):
+    global neurons1
+    neurons1 = x
+
+def set_neurons2(x):
+    global neurons2
+    neurons2 = x
+
+def set_neurons3(x):
+    global neurons3
+    neurons3 = x
+
+def set_policy_net():
+    global n_actions
+    n_actions = 2
+    global policy_net
+    global target_net
+
+    if numberOfLayers == 1:
+        policy_net = DQN1(4, neurons1, n_actions).to(device)
+        target_net = DQN1(4, neurons1, n_actions).to(device)
+    if numberOfLayers == 2:
+        policy_net = DQN2(4, neurons1, neurons2, n_actions).to(device)
+        target_net = DQN2(4, neurons1, neurons2, n_actions).to(device)
+    if numberOfLayers == 3:
+        policy_net = DQN3(4, neurons1, neurons2, neurons3, n_actions).to(device)
+        target_net = DQN3(4, neurons1, neurons2, neurons3, n_actions).to(device)
+    else:
+        policy_net = DQN1(4, 128, n_actions).to(device)
+        target_net = DQN1(4, 128, n_actions).to(device)
+
+    target_net.load_state_dict(policy_net.state_dict())
+    target_net.eval()
 
 
 # Get screen size so that we can initialize layers correctly based on shape
 # returned from AI gym. Typical dimensions at this point are close to 3x40x90
 # which is the result of a clamped and down-scaled render buffer in get_screen()
 # Get number of actions from gym action space
-n_actions = env.action_space.n
 
-policy_net = DQN(4, n_actions).to(device)
-target_net = DQN(4, n_actions).to(device)
-target_net.load_state_dict(policy_net.state_dict())
-target_net.eval()
 
-optimizer = optim.RMSprop(policy_net.parameters(), lr=learningRate)
-memory = ReplayMemory(10000)
-
-def set_batch(size):
-    BATCH_SIZE = size
-
-def set_learningRate(rate):
-    optimizer = optim.RMSprop(policy_net.parameters(), lr=rate)
 
 steps_done = 0
 
@@ -129,7 +191,7 @@ def select_action(state):
     else:
         return torch.tensor([[random.randrange(n_actions)]], device=device, dtype=torch.long)
 
-
+global loss_history, episode_durations
 episode_durations = []
 loss_history = []
 def optimize_model():
@@ -176,95 +238,112 @@ def optimize_model():
     optimizer.step()
     return loss
 
-torch.manual_seed(0)
-random.seed(0)
-np.random.seed(0)
-loss_history = []
-memory = ReplayMemory(10000)
-num_episodes = 1000
-frames = [] #we store the frames in here 
-best_episode=np.NINF #initialize best_episode length
-new_best = False     #variable for new best episode length 
-a = 0                #we use this just to compare the best_episode to this
-frame_count = 0      #frame counter
-for i_episode in tqdm(range(num_episodes)):
-    # Initialize the environment and state
-    env.reset()
-    state = get_observation()
-    loss_history.append(0)
 
-    #3600 is exactly 1 minute, we do this because we want an episode 
-    #that lasts longer than 1 minute, can reduce to save time 
-    if(frame_count>3600):
-        break
+global frames, frame_count, a, best_episode, memory, num_episodes, new_best
+memory = ReplayMemory(65536)
+def start_learning():
+    print(BATCH_SIZE)
     frame_count = 0
-    float_states = []
-    for t in count():
-        if(t>=3600):
-            break
-        #frame_count += 1 #we count the frames to later delete them
-        float_states.append([env.state[0],env.state[2]]) #for rendering 
-        # Select and perform an action
-        action = select_action(state)
+    a = 0                #we use this just to compare the best_episode to this
+    best_episode=np.NINF #initialize best_episode length
+    torch.manual_seed(0)
+    random.seed(0)
+    np.random.seed(0)
+    loss_history = []
+    num_episodes = 500
+    frames = [] #we store the frames in here 
+    new_best = False     #variable for new best episode length
+    for i_episode in tqdm(range(num_episodes)):
+        
+        # Initialize the environment and state
+        """env.reset()
+        state = get_observation()"""
+        # create random state
+        randState = State(0.0, 0.0, 0.0, 0.0)
+        loss_history.append(0)
+        float_states = []
+        state = torch.tensor([randState.coord, randState.speed, randState.angle, randState.ang_speed]).float().reshape(1,4)
+        """
+        state.append(randState.coord)
+        state.append(randState.speed)
+        state.append(randState.angle)
+        state.append(randState.ang_speed)
+        """
+        if(frame_count>900):
+                break
+        for t in count():
+            frame_count += 1
+            if(t > 900):
+                break
+            float_states.append([randState.coord,randState.angle]) #for rendering 
+            # Select and perform an action
+            action = select_action(state)
     
-        _, reward, done, _ = env.step(action.item())
-        reward = torch.tensor([reward], device=device)
+            #_, reward, done, _ = env.step(action.item())
+            done = step(randState, action)
+            if(not done):
+                reward = 1.0
+            else:
+                reward = 0.0
 
-        if not done:
-          next_state = get_observation()
-        else:
-            next_state = None
-        # Store the transition in memory
-        memory.push(state, action, next_state, reward)
-        # Move to the next state
-        state = next_state
-        # Perform one step of the optimization (on the policy network) and save loss in loss_history
-        if len(memory) < BATCH_SIZE:
-          pass
-        else:
-          loss_history[-1] += optimize_model()
+            reward = torch.tensor([reward], device=device)
+
+            if not done:
+                next_state = torch.tensor([randState.coord, randState.speed, randState.angle, randState.ang_speed]).float().reshape(1,4)
+            else:
+                next_state = None
+            # Store the transition in memory
+            memory.push(state, action, next_state, reward)
+            # Move to the next state
+            state = next_state
+            # Perform one step of the optimization (on the policy network) and save loss in loss_history
+            if len(memory) < BATCH_SIZE:
+                pass
+            else:
+                loss_history[-1] += optimize_model()
             
-        if done:
-            episode_durations.append(t + 1)
-            break
+            if done:
+                episode_durations.append(t + 1)
+                float_states.append([123,123])
+                break
+        frame_count = 0
+        #resets new_best 
+        new_best = False
+        # Update the target neFtwork, copying all weights and biases in DQN
+        if i_episode % TARGET_UPDATE == 0:
+            target_net.load_state_dict(policy_net.state_dict())
 
-    #resets new_best 
-    new_best = False
-    # Update the target neFtwork, copying all weights and biases in DQN
-    if i_episode % TARGET_UPDATE == 0:
-        target_net.load_state_dict(policy_net.state_dict())
-
-    #this figures out if the last episode is the new best episode    
-    best_episode = max(best_episode, int(episode_durations[-1]))
-    
-    #a is set to the new best episode
-    if(a!=best_episode):
-        new_best = True
-        a = best_episode
-        print(a)
-        for i in float_states:
-            frame = render(i[0],i[1]) #renders frame
-             #labels frame (relocate this to rendering function later)
-            frame = _label_with_episode_number(frame,episode_num=i_episode)
-            frames.append(frame) #appends frame to frame list
-    
-print('Complete')
-env.close()
-# Plot loss
-# printing the list using loop
-loss_history = pd.Series([float(x) for x in loss_history]).rolling(20).mean().tolist()
-x = np.arange(len(loss_history))
-y = loss_history
-x2 = np.arange(len(episode_durations))
-y2 = episode_durations
-plt.plot(x, y)
-plt.show()
-plt.plot(x2, y2)
-plt.show()
-# Initialize the plot
-#combines renderings into gif
-imageio.mimwrite(os.path.join('./videos/', 'render.gif'), frames, fps=60)
-os.system("ffmpeg -y -i ./videos/render.gif -movflags faststart -pix_fmt yuv420p -vf \"scale=trunc(iw/2)*2:trunc(ih/2)*2\" video.mp4")
-print("done")
-
-
+        #this figures out if the last episode is the new best episode    
+        best_episode = max(best_episode, int(episode_durations[-1]))
+        #a is set to the new best episode
+        if(a!=best_episode):
+            new_best = True
+            a = best_episode
+            print(a)
+            #renders frames
+            for i in float_states:
+                if(i[0]==123 and i[1] == 123):
+                    for j in range(30):
+                        frame=render(float_states[-2][0],float_states[-2][1],True,i_episode)
+                        frames.append(frame)
+                else:
+                    frame = render(i[0],i[1],False,i_episode) #renders frame
+                    frames.append(frame) #appends frame to frame list
+    print('Complete')
+    #env.close()
+    # Plot loss
+    # printing the list using loop
+    loss_history = pd.Series([float(x) for x in loss_history]).rolling(20).mean().tolist()
+    x = np.arange(len(loss_history))
+    y = loss_history
+    x2 = np.arange(len(episode_durations))
+    y2 = pd.Series(episode_durations).rolling(100).mean()
+    plt.plot(x, y)
+    plt.show()        #plot 1 = loss
+    plt.plot(x2, y2)
+    plt.show()        #plot 2 = episode durations
+    # Initialize the plot
+    #combines renderings into gif
+    imageio.mimwrite(os.path.join('./videos/', 'render.gif'), frames, fps=60)
+    os.system("ffmpeg -y -i ./videos/render.gif -movflags faststart -pix_fmt yuv420p -vf \"scale=trunc(iw/2)*2:trunc(ih/2)*2\" video.mp4")
+    print("done")
