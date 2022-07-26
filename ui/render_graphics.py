@@ -2,17 +2,16 @@ import numpy as np
 import math
 from PIL import Image, ImageDraw, ImageFont
 import os
-# Testing purposes
-import random
 
 # Load external resources ---------------------------
 path = os.path.abspath(os.getcwd()) + "/ui/resources/"
 
-background_im = Image.open(path + "background.png")
-gameover_im   = Image.open(path + "gameover.png")
-pole_im       = Image.open(path + "pole.png")
-flame_im      = Image.open(path + "flame.png")
-font_path     = path + "NotoSans-Regular.ttf"
+background_im  = Image.open(path + "background.png")
+gameover_im    = Image.open(path + "gameover.png")
+pole_im        = Image.open(path + "pole.png")
+flame_im       = Image.open(path + "flame.png")
+font_bold_path = path + "NotoSansMono-Bold.ttf"
+font_path      = path + "NotoMono-Regular.ttf"
 pole_im_w, pole_im_h = pole_im.size
 flame_im_w, flame_im_h = flame_im.size
 
@@ -21,7 +20,6 @@ width  = 900
 height = 600
 x_offset = width/2
 y_offset = height - height*0.3 # reversed y-axis
-# TODO: Replace with value from physics
 animation_width = 550
 scale = 30 * width/animation_width
 assert(width/height == background_im.size[0]/background_im.size[1]), "Background image must have ratio 3:2"
@@ -50,9 +48,9 @@ def render(x_cart, angle, game_over, episode_num):
     Coordinates start with (0.0) at the upper left corner of the background image.
     """
 
-    assert(isinstance(angle, float)), "angle must be floating number"
-    assert(isinstance(game_over, bool)), "game_over must be boolean"
-    assert(isinstance(episode_num, int)), "episode_num must be integer"
+    assert(isinstance(angle, float)),     "angle must be floating number"
+    assert(isinstance(game_over, bool)),  "game_over must be boolean"
+    assert(isinstance(episode_num, int) and episode_num >= 0), "episode_num must be positive integer"
 
     # Scene ---------------------------
     if game_over:
@@ -105,55 +103,11 @@ def render(x_cart, angle, game_over, episode_num):
     # Placing image
     scene.paste(flame, (round(flame_left), round(flame_upper)), mask=flame)
 
-    # Display angle
-    # TODO: Replace magic numbers
-    l = 780
-    r = 880
-    t = 50
-    b = 80
-    draw.rectangle((l,t,r,b), fill=(255,255,255))
-    draw.text(((l+r)/2, t), f"{round(math.degrees(angle), 2)}°", fill=(0,0,0), font=ImageFont.truetype(font_path, 20), align="right")
+    # Display angle & epsiode number
+    c = 770 # center x coordinate of text box
+    t = 10  # top    y coordinate of text box
+    draw.text((c, t), f"Ep. {episode_num}", fill=(0,0,0), font=ImageFont.truetype(font_bold_path, 20))
+    draw.text((c, t+5), f"       \n{round(math.degrees(angle), 2)}°", fill=(0,0,0), font=ImageFont.truetype(font_path, 20), align="right")
 
-    # Display epsiode number
-    # TODO: Replace magic numbers
-    l = 780
-    r = 880
-    t = 10
-    b = 40
-    draw.rectangle((l,t,r,b), fill=(255,255,255))
-    draw.text(((l+r)/2, t), f"Ep. {episode_num}", fill=(0,0,0), font=ImageFont.truetype(font_path, 20), align="left")
-    
     return np.array(scene)
 
-def gif(filenames):
-    """ Create GIF from list of images """
-
-    images = []
-    for file in filenames:
-        frame = Image.open(file)
-        images.append(frame)
-    images[0].save("cartpole.gif", save_all=True, append_images=images[1:], duration=100)
-
-def test():
-    """ Test rendering with random values """
-
-    if not (os.path.isdir("frames/")):
-        os.makedirs("frames/")
-
-    frame_files = []
-
-    for i in range(10):
-        frame = Image.fromarray(render(random.randint(-5,5), math.radians(random.randint(-360, 360)), False, 1))
-        filename = "frames/" + str(i) + ".png"
-        frame.save(filename)
-        frame_files.append(filename)
-
-    gif(frame_files)
-
-    # Debugging
-    edge1 = Image.fromarray(render(-4.8,float(0), False, 1))
-    edge2 = Image.fromarray(render( 4.8,float(0), False, 1))
-    gameover_screen = Image.fromarray(render(random.randint(-5,5),math.radians(random.randint(-360, 360)), True, 1))
-    edge1.save("frames/edge1.png")
-    edge2.save("frames/edge2.png")
-    gameover_screen.save("frames/gameover.png")
