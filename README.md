@@ -1,5 +1,14 @@
 # robust-neural-network-playground
 
+### ML
+
+Install requirements.
+
+### Interface
+
+You need the neural_net.py in the same directory.
+Install everything from the ML-Part below. As output you get a list with two numbers. The first one is the leraning rate and the second one is the batch size you called the functions with.
+
 ### Import render_graphics
 
 To import render_graphics.py, please ensure that you are outside of the ui directory.
@@ -17,14 +26,3 @@ Now you can simply call render like this from within your code:
 render(x_cart, angle, game_over, episode_num)
 ```
 See test_graphics.py as reference.
-
-
-### Interface
-
-You need the neural_net.py in the same directory.
-Install everything from the ML-Part below. As output you get a list with two numbers. The first one is the leraning rate and the second one is the batch size you called the functions with.
-
-### ML
-
-Install requirements in ML folder.
-

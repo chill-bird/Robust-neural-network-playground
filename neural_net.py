@@ -25,7 +25,7 @@ import pandas as pd
 path = os.path.abspath(os.getcwd())
 ui_path = path + '/ui'
 sys.path.insert(1, ui_path)
-from render_graphics import render, gif
+from render_graphics import render
 from physics import step, State
 
 """if(torch.cuda.is_available()):

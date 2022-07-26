@@ -1,9 +1,0 @@
-# requirements.txt
-pip install gym
-pip install imageio
-pip install matplotlib
-pip install torch
-pip install torchvision
-pip install gym[classic_control]
-pip install tqdm
-pip install pandas
