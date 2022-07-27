@@ -7,7 +7,7 @@ Install requirements.
 ### Interface
 
 You need the neural_net.py in the same directory.
-Install everything from the ML-Part below. As output you get a list with two numbers. The first one is the leraning rate and the second one is the batch size you called the functions with.
+Install everything from the ML-Part. You need a random mp4-video in the same directory. The video has to be named 'video.mp4'.
 
 ### Import render_graphics
 
