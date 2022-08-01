@@ -42,15 +42,14 @@ resize_factor = flame_height / flame_im_h
 flame_width = flame_im_w * resize_factor
 flame_im = flame_im.resize((round(flame_width), round(flame_height)))
 
-def render(x_cart, angle, game_over, episode_num):
+def render(x_cart: int, angle: float, game_over: bool, episode_num: int, score: int):
     """
     Receive x coordinate of a cart and angle(rad) of the pole and return an RGB array of the drawn scene.
     Coordinates start with (0.0) at the upper left corner of the background image.
     """
 
-    assert(isinstance(angle, float)),     "angle must be floating number"
-    assert(isinstance(game_over, bool)),  "game_over must be boolean"
-    assert(isinstance(episode_num, int) and episode_num >= 0), "episode_num must be positive integer"
+    assert(episode_num >= 0), "Episode_num must be positive integer"
+    assert(score       >= 0), "Current frame number (= score) must be positive integer"
 
     # Scene ---------------------------
     if game_over:
@@ -76,6 +75,7 @@ def render(x_cart, angle, game_over, episode_num):
     draw.ellipse((x_cart-radius, y_offset-radius, x_cart+radius, y_offset+radius), fill=(255,0,0))
 
     # Pole ---------------------------
+    angle *= -1 # Use non-mathematical angle direction
     pole = pole_im.copy()
     pole = pole.rotate(math.degrees(angle), expand=1)
     # Pole vector
@@ -104,10 +104,12 @@ def render(x_cart, angle, game_over, episode_num):
     scene.paste(flame, (round(flame_left), round(flame_upper)), mask=flame)
 
     # Display angle & epsiode number
-    c = 770 # center x coordinate of text box
-    t = 10  # top    y coordinate of text box
-    draw.text((c, t), f"Ep. {episode_num}", fill=(0,0,0), font=ImageFont.truetype(font_bold_path, 20))
-    draw.text((c, t+5), f"       \n{round(math.degrees(angle), 2)}°", fill=(0,0,0), font=ImageFont.truetype(font_path, 20), align="right")
+    c = 700 # center x coordinate of text box
+    t = -10 # top y coordinate of text box
+    draw.text((c, t), "\nScore", fill=(0,0,0), font=ImageFont.truetype(font_bold_path, 20)) # paragraph inserted due to different alignments
+    draw.text((c, t), f"             \n{score}", fill=(0,0,0), font=ImageFont.truetype(font_bold_path, 20), align="right")
+    draw.text((c, t+30), "\nEpisode", fill=(0,0,0), font=ImageFont.truetype(font_path, 20)) # paragraph inserted due to different alignments
+    draw.text((c, t+30), f"             \n{episode_num}", fill=(0,0,0), font=ImageFont.truetype(font_path, 20), align="right")
+    draw.text((c, t+50), f"             \n{round(math.degrees(angle), 2)}°", fill=(0,0,0), font=ImageFont.truetype(font_path, 20), align="right")
 
     return np.array(scene)
-

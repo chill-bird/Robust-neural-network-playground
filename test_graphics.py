@@ -23,7 +23,7 @@ def test():
     frame_files = []
 
     for i in range(10):
-        frame = Image.fromarray(render(random.randint(-5,5), math.radians(random.randint(-360, 360)), False, 1))
+        frame = Image.fromarray(render(random.randint(-5,5), math.radians(random.randint(-360, 360)), False, 1, 1000))
         filename = "frames/" + str(i) + ".png"
         frame.save(filename)
         frame_files.append(filename)
@@ -31,9 +31,9 @@ def test():
     gif(frame_files)
 
     # Debugging
-    edge1 = Image.fromarray(render(-4.8,float(0), False, 1))
-    edge2 = Image.fromarray(render( 4.8,float(0), False, 1))
-    gameover_screen = Image.fromarray(render(random.randint(-5,5),math.radians(random.randint(-360, 360)), True, 1))
+    edge1 = Image.fromarray(render(-4.8,float(0), False, 1, 1))
+    edge2 = Image.fromarray(render( 4.8,float(0), False, 1, 1))
+    gameover_screen = Image.fromarray(render(random.randint(-5,5),math.radians(random.randint(-360, 360)), True, 1, 99))
     edge1.save("frames/edge1.png")
     edge2.save("frames/edge2.png")
     gameover_screen.save("frames/gameover.png")
