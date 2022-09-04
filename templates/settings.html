@@ -1,1 +1,151 @@
+<!DOCTYPE html>
+                  <html>
+                        <head>
+                                <title>project</title>
+                                <meta charset="utf-8">
+                                <style>
+                                    #first {
+                                        float: left;
+                                        width: 50%;
+                                    }
 
+                                    #second {
+                                        float: right;
+                                        width: 50%;
+                                    }
+
+                                    #third {
+                                        float: left;
+                                        width: 50%;
+                                        padding-top: 20px;
+                                    }
+
+                                    #fourth {
+                                        float: right;
+                                        width: 50%;
+                                        padding-top: 20px;
+                                    }
+
+                                    .new-line {
+                                        float: left;
+                                        width: 100%;
+                                    }
+                                </style>
+                        </head>
+                        <body>
+                                <form action="{{url_for('learn')}}" method="get">
+                                    <div id="first"> </div>
+                                    <div id="second"> </div>
+                                    <div class="new-line"> </div>
+                                    <div id="third"> </div>
+                                    <div id="fourth"> </div>
+                                    <div class="new-line">
+                                        <input type="submit" value="start learning">
+                                    </div>
+                                </form>
+                                <script>
+                                        function show_values(){
+                                                var div = document.getElementById("third");
+                                                var bs = document.getElementById("bs");
+                                                var lr = document.getElementById("lr");
+                                                var nohl = document.getElementById("nohl");
+
+                                                div.innerHTML = '<h3>current settings</h3>'
+                                                                + 'batch size: ' + bs.value
+                                                                + '<br>'
+                                                                + 'learning rate: ' + lr.value
+                                                                + '<br>'
+                                                                + 'number of hidden layers: ' + nohl.value;
+                                        }
+
+                                        function show_nodes_numbers(){
+                                            var div = document.getElementById("fourth");
+                                            var nohl = document.getElementById("nohl").value;
+                                            var headline = '<h3>Number of nodes in the hidden layer(s)</h3>';
+
+                                            if(nohl == 1){
+                                                var fhl = document.getElementById("fhl").value;
+                                                
+                                                numbers = 'hidden layer: ' + fhl;
+                                            }else{
+                                                if(nohl == 2){
+                                                    var fhl = document.getElementById("fhl").value;
+                                                    var shl = document.getElementById("shl").value;
+
+                                                    numbers = 'first hidden layer: ' + fhl
+                                                              + '<br>'
+                                                              + 'second hidden layer: ' + shl;
+                                                }else{
+                                                    var fhl = document.getElementById("fhl").value;
+                                                    var shl = document.getElementById("shl").value;
+                                                    var thl = document.getElementById("thl").value;
+
+                                                    numbers = 'first hidden layer: ' + fhl
+                                                              + '<br>'
+                                                              + 'second hidden layer: ' + shl
+                                                              + '<br>'
+                                                              + 'third hidden layer: ' + thl;
+                                                }
+                                            }
+
+                                            div.innerHTML = headline + numbers;
+                                        }
+
+                                        function show_sliders(){
+                                            show_values();
+                                            var div = document.getElementById("second");
+                                            var nohl = document.getElementById("nohl").value;
+                                            var sliders = 'hidden layer: ' + '<input type="range" name="fhl" min="10" max="128" step="2" id="fhl" onchange="show_nodes_numbers()">'; //first hidden layer
+
+                                            if(nohl == 2){
+                                                sliders =  'first hidden layer: ' + '<input type="range" name="fhl" min="10" max="128" step="2" id="fhl" onchange="show_nodes_numbers()">'
+                                                           + '<br>'
+                                                           + 'second hidden layer: ' + '<input type="range" name="shl" min="10" max="128" step="2" id="shl" onchange="show_nodes_numbers()">';
+                                            }else{
+                                                if(nohl == 3){
+                                                    sliders =  'first hidden layer: ' + '<input type="range" name="fhl" min="10" max="128" step="2" id="fhl" onchange="show_nodes_numbers()">'
+                                                            + '<br>'
+                                                            + 'second hidden layer: ' + '<input type="range" name="shl" min="10" max="128" step="2" id="shl" onchange="show_nodes_numbers()">'
+                                                            + '<br>'
+                                                            + 'third hidden layer: ' + '<input type="range" name="thl" min="10" max="128" step="2" id="thl" onchange="show_nodes_numbers()">';
+                                                }
+                                            }
+
+                                            div.innerHTML = '<h3>Select the number of nodes in the hidden layer(s): </h3>' + sliders;
+
+                                            show_nodes_numbers();
+                                        }
+
+                                        function start(){
+                                                var dropdown = '<label>learning rate</label>'
+                                                               + '<br>'
+                                                               + '<select name="lr" id="lr" onchange="show_values()"><option>0.01</option><option>0.001</option><option>0.0001</option><option>0.00001</option><option>0.000001</option></select>'
+                                                output = dropdown
+                                                         + '<br><br>'
+                                                         + '<label>batch size</label>'
+                                                         + '<br>'
+                                                         + '<input type="range" name="bs" min="32" max="1024" step="32" id="bs" onchange="show_values()">'
+                                                         + '<br><br>'
+                                                         + '<label>number of hidden layers</label>'
+                                                         + '<br>'
+                                                         + '<input type="range" name="nohl" min="1" max="3" id="nohl" onchange="show_sliders()">'
+							 + '<br>'
+							 + '<label>number of episodes</lable>'
+							 + '<br>'
+							 + '<input type="range" name="nr" min="500" max="5000" step="500">'
+                                                
+                                                //sliders = show_sliders();
+
+                                                document.getElementById("first").innerHTML = output;
+
+                                                show_sliders();
+                                        }
+
+                                        function init(){
+                                                start();
+                                        }
+
+                                        window.addEventListener("load", init);
+                                </script>
+                        </body>
+                  </html>
