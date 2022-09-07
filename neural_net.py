@@ -5,6 +5,7 @@ import math
 import random
 import glob
 import imageio
+import csv
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
@@ -21,6 +22,7 @@ import matplotlib.animation
 import io
 import sys
 from tqdm import tqdm
+import requests
 import pandas as pd
 path = os.path.abspath(os.getcwd())
 ui_path = path + '/ui'
@@ -121,6 +123,11 @@ TARGET_UPDATE = 100
 def set_batch(size):
     global BATCH_SIZE
     BATCH_SIZE = size
+
+
+def set_nrEpisodes(x):
+    global num_episodes
+    num_episodes = x
 
 def set_learningRate(rate):
     global optimizer
@@ -239,7 +246,7 @@ def optimize_model():
     return loss
 
 
-global frames, frame_count, a, best_episode, memory, num_episodes, new_best
+global frames, frame_count, a, best_episode, memory, new_best, counter
 memory = ReplayMemory(65536)
 def start_learning():
     print(BATCH_SIZE)
@@ -250,25 +257,31 @@ def start_learning():
     random.seed(0)
     np.random.seed(0)
     loss_history = []
-    num_episodes = 500
+    counter =0
     frames = [] #we store the frames in here 
     new_best = False     #variable for new best episode length
+    if os.path.exists("loss.csv"):
+        os.remove("loss.csv")
+    if os.path.exists("dfile.txt"):
+        os.remove("dfile.txt")
     for i_episode in tqdm(range(num_episodes)):
         
+
+        counter += 1
+        with open('dfile.txt', 'w') as f:
+            f.write(str(100 * (counter / num_episodes)))
+        f = open("dfile.txt", 'rb')
+        files = {"file": (f.name, f, "multipart/form-data")}
+        b = requests.post(url="http://127.0.0.1:5000/video", files=files)
+
         # Initialize the environment and state
-        """env.reset()
-        state = get_observation()"""
         # create random state
         randState = State(0.0, 0.0, 0.0, 0.0)
         loss_history.append(0)
         float_states = []
         state = torch.tensor([randState.coord, randState.speed, randState.angle, randState.ang_speed]).float().reshape(1,4)
-        """
-        state.append(randState.coord)
-        state.append(randState.speed)
-        state.append(randState.angle)
-        state.append(randState.ang_speed)
-        """
+        
+
         if(frame_count>900):
                 break
         for t in count():
@@ -307,6 +320,14 @@ def start_learning():
                 float_states.append([123,123])
                 break
         frame_count = 0
+        y = pd.Series([float(x) for x in loss_history]).rolling(20).mean().tolist()
+        x2 = np.arange(len(episode_durations))
+        y2 = pd.Series(episode_durations).rolling(100).mean()
+        with open('loss.txt', 'w') as f:
+            f.write(str(y[i_episode]))
+        f = open("loss.txt", 'rb')
+        files = {"file": (f.name, f, "multipart/form-data")}
+        b = requests.post(url="http://127.0.0.1:5000/video", files=files)
         #resets new_best 
         new_best = False
         # Update the target neFtwork, copying all weights and biases in DQN
@@ -324,26 +345,17 @@ def start_learning():
             for i in float_states:
                 if(i[0]==123 and i[1] == 123):
                     for j in range(30):
-                        frame=render(float_states[-2][0],float_states[-2][1],True,i_episode)
+                        frame=render(float_states[-2][0],float_states[-2][1],True,i_episode, best_episode)
                         frames.append(frame)
                 else:
-                    frame = render(i[0],i[1],False,i_episode) #renders frame
+                    print("von hier")
+                    print(i_episode)
+                    print("bis hier")
+                    frame = render(i[0],i[1],False,i_episode, best_episode) #renders frame
                     frames.append(frame) #appends frame to frame list
     print('Complete')
-    #env.close()
-    # Plot loss
-    # printing the list using loop
-    loss_history = pd.Series([float(x) for x in loss_history]).rolling(20).mean().tolist()
-    x = np.arange(len(loss_history))
-    y = loss_history
-    x2 = np.arange(len(episode_durations))
-    y2 = pd.Series(episode_durations).rolling(100).mean()
-    plt.plot(x, y)
-    plt.show()        #plot 1 = loss
-    plt.plot(x2, y2)
-    plt.show()        #plot 2 = episode durations
     # Initialize the plot
     #combines renderings into gif
-    imageio.mimwrite(os.path.join('./videos/', 'render.gif'), frames, fps=60)
-    os.system("ffmpeg -y -i ./videos/render.gif -movflags faststart -pix_fmt yuv420p -vf \"scale=trunc(iw/2)*2:trunc(ih/2)*2\" video.mp4")
+    imageio.mimwrite(os.path.join('./static/', 'render.gif'), frames, fps=60)
+    os.system("ffmpeg -y -i ./static/render.gif -movflags faststart -pix	_fmt yuv420p -vf \"scale=trunc(iw/2)*2:trunc(ih/2)*2\" video.mp4")
     print("done")
