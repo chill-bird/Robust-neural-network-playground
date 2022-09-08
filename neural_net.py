@@ -272,7 +272,7 @@ def start_learning():
             f.write(str(100 * (counter / num_episodes)))
         f = open("dfile.txt", 'rb')
         files = {"file": (f.name, f, "multipart/form-data")}
-        b = requests.post(url="http://127.0.0.1:5000/video", files=files)
+        # b = requests.post(url="http://127.0.0.1:5000/video", files=files)
 
         # Initialize the environment and state
         # create random state
@@ -327,8 +327,8 @@ def start_learning():
             f.write(str(y[i_episode]))
         f = open("loss.txt", 'rb')
         files = {"file": (f.name, f, "multipart/form-data")}
-        b = requests.post(url="http://127.0.0.1:5000/video", files=files)
-        #resets new_best 
+        # b = requests.post(url="http://127.0.0.1:5000/video", files=files)
+        # resets new_best 
         new_best = False
         # Update the target neFtwork, copying all weights and biases in DQN
         if i_episode % TARGET_UPDATE == 0:
