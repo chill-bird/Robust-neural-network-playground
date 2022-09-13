@@ -397,4 +397,5 @@ def start_learning():
     print('Complete')
     thread = Thread(target=createVideo(best_frames))
     thread.start()
+    thread.join()
             
