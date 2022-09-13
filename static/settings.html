@@ -17,12 +17,14 @@
                                             </video>
                                            
                                             <script type='text/javascript'>
+                                                setInterval(hasEnded(), 10000);
                                                 function hasEnded(){
                                                   setTimeout(function(){
                                                   document.querySelector("#video > source").src = "static/video.mp4?t=" + Date.now();
                                                   document.getElementById('video').load();
+
                                                   document.getElementById('video').play();
-                                                }, 10000);
+                                                }, 5000);
                                                 }
                                               </script>
                                             
@@ -206,7 +208,7 @@
                                         yAxes: [{
                                         ticks: {
                                             autoSkip: true,
-                                            maxTicksLimit: 30
+                                            maxTicksLimit: 20
                                         }
                                         }]
                                         }
@@ -239,7 +241,7 @@
                                         yAxes: [{
                                         ticks: {
                                             autoSkip: true,
-                                            maxTicksLimit: 30
+                                            maxTicksLimit: 20
                                         }
                                         }]
                                         }
