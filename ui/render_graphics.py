@@ -16,8 +16,8 @@ pole_im_w, pole_im_h = pole_im.size
 flame_im_w, flame_im_h = flame_im.size
 
 # Scaling Factors ---------------------------
-width  = 900
-height = 600
+width  = 600 
+height = 400
 x_offset = width/2
 y_offset = height - height*0.3 # reversed y-axis
 animation_width = 4.8
@@ -104,12 +104,13 @@ def render(x_cart: int, angle: float, game_over: bool, episode_num: int, score: 
     scene.paste(flame, (round(flame_left), round(flame_upper)), mask=flame)
 
     # Display angle & epsiode number
-    c = 700 # center x coordinate of text box
-    t = -10 # top y coordinate of text box
+    c = width*0.73 # center x coordinate of text box
+    t = -height*0.07 # top y coordinate of text box
     draw.text((c, t), "\nScore", fill=(0,0,0), font=ImageFont.truetype(font_bold_path, 20)) # paragraph inserted due to different alignments
     draw.text((c, t), f"             \n{score}", fill=(0,0,0), font=ImageFont.truetype(font_bold_path, 20), align="right")
     draw.text((c, t+30), "\nEpisode", fill=(0,0,0), font=ImageFont.truetype(font_path, 20)) # paragraph inserted due to different alignments
     draw.text((c, t+30), f"             \n{episode_num}", fill=(0,0,0), font=ImageFont.truetype(font_path, 20), align="right")
+    draw.text((c, t+50), "\nAngle", fill=(0,0,0), font=ImageFont.truetype(font_path, 20)) # paragraph inserted due to different alignments
     draw.text((c, t+50), f"             \n{round(math.degrees(angle), 2)}°", fill=(0,0,0), font=ImageFont.truetype(font_path, 20), align="right")
 
     return np.array(scene)

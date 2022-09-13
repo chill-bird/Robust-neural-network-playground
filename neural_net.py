@@ -4,6 +4,7 @@ import os
 import math
 import random
 import glob
+from tabnanny import check
 import imageio
 import csv
 import numpy as np
@@ -24,6 +25,7 @@ import sys
 from tqdm import tqdm
 import requests
 import pandas as pd
+import ffmpegio
 path = os.path.abspath(os.getcwd())
 ui_path = path + '/ui'
 sys.path.insert(1, ui_path)
@@ -34,7 +36,7 @@ from physics import step, State
     device = torch.device("cuda")
 else:
     device = torch.device("cpu")"""
-device = torch.device("cpu")
+device = torch.device("cuda")
 
 #env = gym.make('CartPole-v0').unwrapped
 
@@ -106,6 +108,8 @@ class DQN3(nn.Module):
         x = F.relu(self.fc4(x))
         return x
 
+
+
 """def get_observation():
   return torch.tensor(env.state).float().reshape(1,4)"""
 
@@ -155,7 +159,6 @@ def set_policy_net():
     n_actions = 2
     global policy_net
     global target_net
-
     if numberOfLayers == 1:
         policy_net = DQN1(4, neurons1, n_actions).to(device)
         target_net = DQN1(4, neurons1, n_actions).to(device)
@@ -246,10 +249,11 @@ def optimize_model():
     return loss
 
 
-global frames, frame_count, a, best_episode, memory, new_best, counter
+global frames, frame_count, a, best_episode, memory, new_best, counter, best_frames
 memory = ReplayMemory(65536)
 def start_learning():
     print(BATCH_SIZE)
+    global num_episodes
     frame_count = 0
     a = 0                #we use this just to compare the best_episode to this
     best_episode=np.NINF #initialize best_episode length
@@ -258,15 +262,34 @@ def start_learning():
     np.random.seed(0)
     loss_history = []
     counter =0
-    frames = [] #we store the frames in here 
+    best_frames = []
     new_best = False     #variable for new best episode length
     if os.path.exists("loss.csv"):
         os.remove("loss.csv")
     if os.path.exists("dfile.txt"):
         os.remove("dfile.txt")
+    
+    
+    global episode
+    episode = 0
+    if(os.path.exists("model.pt")):
+        print("reading!")
+        checkpoint = torch.load("model.pt")
+        policy_net.load_state_dict(checkpoint['policy_state_dict'])
+        target_net.load_state_dict(checkpoint['target_state_dict'])
+        optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+        episode = checkpoint['i_episode']
+        num_episodes = num_episodes - episode
+        best_episode = checkpoint['best_episode']
+        best_frames = checkpoint['best_frames']
+        loss_history = checkpoint['loss_history']
+        print(num_episodes)
+        policy_net.eval()
+        with open('static/flag', 'w') as f:
+                    f.write('0')
+                    f.close
     for i_episode in tqdm(range(num_episodes)):
-        
-
+        frames = []
         counter += 1
         with open('dfile.txt', 'w') as f:
             f.write(str(100 * (counter / num_episodes)))
@@ -307,7 +330,7 @@ def start_learning():
                 next_state = None
             # Store the transition in memory
             memory.push(state, action, next_state, reward)
-            # Move to the next state
+            # Move to the next staSte
             state = next_state
             # Perform one step of the optimization (on the policy network) and save loss in loss_history
             if len(memory) < BATCH_SIZE:
@@ -337,25 +360,54 @@ def start_learning():
         #this figures out if the last episode is the new best episode    
         best_episode = max(best_episode, int(episode_durations[-1]))
         #a is set to the new best episode
+        if(i_episode >= 99 and i_episode%100 == 0):
+            for i in float_states:
+                if(i[0]==123 and i[1] == 123):
+                    for j in range(30):
+                        frame=render(float_states[-2][0],float_states[-2][1],True,i_episode+episode, int(episode_durations[-1]))
+                        frames.append(frame)
+                else:
+                    frame = render(i[0],i[1],False,i_episode+episode, int(episode_durations[-1])) #renders frame
+                    frames.append(frame) #appends frame to frame list
+            imageio.mimwrite(os.path.join('./static/', 'render.gif'), frames, fps=30)
+            os.system("ffmpeg -y -i ./static/render.gif -movflags faststart -pix_fmt yuv420p -vf \"scale=trunc(iw/2)*2:trunc(ih/2)*2\" ./static/video.mp4")
+
         if(a!=best_episode):
             new_best = True
             a = best_episode
+            best_frames = []
             print(a)
             #renders frames
             for i in float_states:
                 if(i[0]==123 and i[1] == 123):
                     for j in range(30):
-                        frame=render(float_states[-2][0],float_states[-2][1],True,i_episode, best_episode)
-                        frames.append(frame)
+                        frame=render(float_states[-2][0],float_states[-2][1],True,i_episode+episode, best_episode)
+                        best_frames.append(frame)
                 else:
-                    print("von hier")
-                    print(i_episode)
-                    print("bis hier")
-                    frame = render(i[0],i[1],False,i_episode, best_episode) #renders frame
-                    frames.append(frame) #appends frame to frame list
+                    frame = render(i[0],i[1],False,i_episode+episode, best_episode) #renders frame
+                    best_frames.append(frame) #appends frame to frame list
+        with open('static/flag', 'r') as f:
+            if '1' in f.read():
+                torch.save({
+                'i_episode': i_episode+episode,
+                'policy_state_dict': policy_net.state_dict(),
+                'optimizer_state_dict': optimizer.state_dict(),
+                'target_state_dict': target_net.state_dict(),
+                'loss_history': loss_history,
+                'best_episode': best_episode,
+                'best_frames': best_frames}, "model.pt")
+                print("true")
+                f.close()
+                with open('static/flag', 'w') as f:
+                    f.write('0')
+                    f.close
+                break
     print('Complete')
+    imageio.mimwrite(os.path.join('./static/', 'render.gif'), best_frames, fps=30)
+    os.system("ffmpeg -y -i ./static/render.gif -movflags faststart -pix_fmt yuv420p -vf \"scale=trunc(iw/2)*2:trunc(ih/2)*2\" ./static/video.mp4")
     # Initialize the plot
     #combines renderings into gif
-    imageio.mimwrite(os.path.join('./static/', 'render.gif'), frames, fps=60)
-    os.system("ffmpeg -y -i ./static/render.gif -movflags faststart -pix	_fmt yuv420p -vf \"scale=trunc(iw/2)*2:trunc(ih/2)*2\" video.mp4")
-    print("done")
+    #os.system("ffmpeg -y -i ./static/render.gif -movflags faststart -pix	_fmt yuv420p -vf \"scale=trunc(iw/2)*2:trunc(ih/2)*2\" video.mp4")
+    #print("done")
+def get_frames():
+    return frames

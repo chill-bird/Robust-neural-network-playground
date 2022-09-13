@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+                  <html>
+                        <head>
+                                <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+                                
+                                <title>project</title>
+                                <meta charset="utf-8">
+                                <style>
+                                    @font-face{
+                                        font-family: PragmataPro;
+                                        src: url(PragmataPro-Regular.ttf)
+                                        f
+                                    }
+                                    body{
+                                        font-size: 18px;
+                                        background-color: #36393f;
+                                        color: white
+                                    }
+                                    #lr-v, #bs-v, #nohl-v, #nr-v{
+                                        padding-bottom: 20px;
+                                    }
+                                    .wrapper{
+                                        display: grid;
+                                    }
+                                    #left-side {
+                                        grid-column: 1;
+                                        grid-row: 1/1/2/3;
+                                        text-align: center;
+                                        border-left: 10px solid #202225;
+                                        border-right: 10px solid #202225;
+                                    }
+                                    
+                                    #left-side2 {
+                                        grid-column: 1;
+                                        grid-row: 2/1/2/3;
+                                        text-align: center;
+                                        border-left: 10px solid #202225;
+                                        border-right: 10px solid #202225;
+                                        border-top: 10px solid #202225;
+                                        padding-bottom: 10px;
+                                    }
+                                    #right-side{
+                                        grid-area: 1 / col2-start / last-line / 3;
+                                        border-right: 10px solid #202225;
+                                    }
+                                    #right-side2{
+                                        text-align: center;
+                                        grid-area: 2 / col2-start / last-line / 3;
+                                        border-right: 10px solid #202225;
+                                        border-top: 10px solid #202225;
+                                    }
+                                    #right-side3{
+                                        text-align: right;
+                                        padding-right: 2%;
+                                        grid-area: 1/2/3/3;
+                                        border-right: 10px solid #202225
+                                    }
+                                    #button {
+                                        clear:both;
+                                        padding: 5px;
+                                        text-align: center;
+                                    }
+                                    #submit {
+                                        clear: both;
+                                        border: none;
+                                        color: white;
+                                        text-align: center;
+                                        text-decoration: none;
+                                        display: inline-block;
+                                        font-size: 16px;
+                                        padding-left: 16px;
+                                        padding-right: 16px;
+                                        padding-top: 16px;
+                                        padding-bottom: 16px;
+                                        margin: 4px 2px;
+                                        background-color: #292b2f;
+                                        border-radius: 8px;
+                                    }
+
+                                    .space {
+                                        clear: both;
+                                        padding: 10px;
+                                        background-color: #202225;
+                                    }
+
+                                    #submit:hover {
+                                        background-color: #3e4248;
+                                    }
+                                    form {
+                                        display: inline;
+                                        width:auto;
+                                    }
+                                </style>
+                        </head>
+                        <body>
+                                <form action="{{url_for('learn')}}" method="get">
+                                    <div class="space"> </div>
+                                    <div class="wrapper">
+                                            <div id="right-side">
+                                            <video onended="hasEnded()" id="video" width="600" height="400" controls muted autoplay>
+                                                <source src="static/video.mp4" type="video/mp4" alt="reload">
+                                            </video>
+                                           
+                                            
+                                            <script type='text/javascript'>
+                                                function hasEnded(){
+                                                  document.querySelector("#video > source").src = "static/video.mp4?t=" + Date.now();
+                                                  document.getElementById('video').load();
+                                                  document.getElementById('video').play();
+                                                }
+                                              </script>
+                                            
+                                            </div>
+                                            <div id="right-side2">
+                                                <h3>Reload page if video stops loading!</h3>
+                                                <p>Press "start new" to start training a new model</p>
+                                                <p>Press "stop & save" to stop learning and save the model including all progress</p>
+                                                <p>Press "resume learning" to continue training the model</p>
+                                            </div>
+                                            <div id="right-side3">
+                                                <p>The video will keep looping the same video</p>
+                                                <p>until there's a new video to see.</p>
+                                                <br>
+                                                <p>New videos are created every 100 episodes</p>
+                                                <p>or when "stop & save" is pressed</p>
+                                                <p>in which case it shows the best episode so far.</p>
+
+                                            </div>
+                                        <div id="left-side">
+                                            <h1>Settings</h1>
+                                            <div id="lr-h"> </div>
+                                            <div id="lr-v"> </div>
+                                            <div id="bs-h"> </div>
+                                            <div id="bs-v"> </div>
+                                            <div id="nohl-h"> </div>
+                                            <div id="nohl-v"> </div>
+                                            <div id="nr-h"> </div>
+                                            <div id="nr-v"> </div>
+                                        </div>
+                                        
+                                        <div id="left-side2">
+                                            <h3>Number of nodes in the hidden layer(s)</h3>
+                                            <div id="fhl-h"> </div>
+                                            <div id="fhl-v"> </div>
+                                            <div id="shl-h"> </div>
+                                            <div id="shl-v"> </div>
+                                            <div id="thl-h"> </div>
+                                            <div id="thl-v"> </div>
+                                        </div>
+                                    </div>
+                                    <div class="space"> </div>
+                                    <div id="button">
+                                        <input type="submit" name ="submit" value="start new" id="submit">
+                                        <input type="submit" name ="submit" value="resume learning" id="submit">
+                                        <script type='text/javascript'>
+                                            document.getElementById("submit").addEventListener("click", clicked);
+                                            function clicked(){
+                                                location.reload();
+                                            }
+                                          </script>
+                                </form>
+                                
+                                <form action="{{url_for('reload')}}" method="post">
+                                    <input type="submit" name ="submit" value="stop & save" id="submit">
+                                </form></div>
+
+                                <script>
+                                        function settings(){
+                                                document.getElementById("lr-v").innerHTML = '<select name="lr" id="lr" onchange="show_settings_values()"><option>0.01</option><option>0.001</option><option>0.0001</option><option>0.00001</option><option>0.000001</option></select>';
+                                                document.getElementById("bs-v").innerHTML = '<input type="range" name="bs" min="16" max="256" step="16" id="bs" onchange="show_settings_values()">';
+                                                document.getElementById("nohl-v").innerHTML = '<input type="range" name="nohl" min="1" max="3" id="nohl" onchange="show_settings_values()">';
+                                                document.getElementById("nr-v").innerHTML = '<input type="range" name="nr" min="500" max="5000" step="500" id="nr" onchange="show_settings_values()">';
+                                        
+                                                show_settings_values();
+                                        }
+
+                                        function show_settings_values(){
+                                                var bs = document.getElementById("bs").value;
+                                                var nohl = document.getElementById("nohl").value;
+                                                var nr = document.getElementById("nr").value;
+                                                
+                                                document.getElementById("lr-h").innerHTML = 'learning rate';
+                                                document.getElementById("bs-h").innerHTML = 'batch size: ' + bs;
+                                                document.getElementById("nohl-h").innerHTML = 'number of hidden layer(s): ' + nohl;
+                                                document.getElementById("nr-h").innerHTML = 'number of episodes: ' + nr;
+
+                                                show_sliders();
+                                        }
+
+                                        function show_sliders(){
+                                                var nohl = document.getElementById("nohl").value;
+
+                                                //loescht zuerst shl und thl
+                                                document.getElementById("shl-v").innerHTML = "";
+                                                document.getElementById("thl-v").innerHTML = "";
+
+                                                //setzt die neue Anzahl an slidern
+                                                document.getElementById("fhl-v").innerHTML = '<input type="range" name="fhl" min="10" max="250" step="10" id="fhl" onchange="show_nodes_numbers()">';
+
+                                                if(nohl >= 2){
+                                                    document.getElementById("shl-v").innerHTML = '<input type="range" name="shl" min="10" max="250" step="10" id="shl" onchange="show_nodes_numbers()">';
+                                                }
+
+                                                if(nohl == 3){
+                                                    document.getElementById("thl-v").innerHTML = '<input type="range" name="thl" min="10" max="250" step="10" id="thl" onchange="show_nodes_numbers()">';
+                                                }
+
+                                                show_nodes_numbers();
+                                        }
+
+                                        function show_nodes_numbers(){
+                                                var nohl = document.getElementById("nohl").value;
+
+                                                //loescht zuerst shl und thl
+                                                document.getElementById("shl-h").innerHTML = "";
+                                                document.getElementById("thl-h").innerHTML = "";
+
+                                                //setzt die neue Anzahl an slidern
+                                                var fhl = document.getElementById("fhl").value;
+
+                                                if(nohl == 1){
+                                                    document.getElementById("fhl-h").innerHTML = 'hidden layer: ' + fhl;
+                                                }else{
+                                                    document.getElementById("fhl-h").innerHTML = 'first hidden layer: ' + fhl;
+                                                }
+
+                                                if(nohl >= 2){
+                                                    var shl = document.getElementById("shl").value;
+                                                    document.getElementById("shl-h").innerHTML = 'second hidden layer: ' + shl;
+                                                }
+
+                                                if(nohl == 3){
+                                                    var thl = document.getElementById("thl").value;
+                                                    document.getElementById("thl-h").innerHTML = 'third hidden layer: ' + thl;
+                                                }
+
+                                        }
+
+                                        function init(){
+                                                settings();
+                                        }
+
+                                        window.addEventListener("load", init);
+                                </script>
+                        </body>
+                  </html>

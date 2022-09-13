@@ -1,17 +1,32 @@
+from crypt import methods
 from flask import Flask, render_template, request, redirect, url_for
 from datetime import datetime
-
+import os
 import neural_net
+import matplotlib.pyplot as plt
 
-
-app = Flask(__name__)
+app = Flask(__name__, template_folder='static')
 
 @app.route("/")
 def home():
 	return render_template("settings.html")
 
+
+
+
 @app.route("/learn")
 def learn():
+	if request.args.get('submit') == 'resume learning':
+		with open('static/flag', 'w') as f:
+			f.write('0')
+	if request.args.get('submit') == 'start new':
+		with open('static/flag', 'w') as f:
+			f.write('0')
+		if os.path.exists("model.pt"):
+			os.remove("model.pt")
+		if os.path.exists("static/render.mp4"):
+			os.os.remove("static/render.mp4")
+
 	lr = float(request.args.get('lr'))
 	bs = int(request.args.get('bs'))
 	nohl = int(request.args.get('nohl'))
@@ -46,17 +61,18 @@ def learn():
 	neural_net.set_policy_net()
 	neural_net.set_learningRate(lr)
 	neural_net.set_nrEpisodes(nr)
-
 	neural_net.start_learning()
-
-	return redirect(url_for('video'))
+	return redirect('/')
 
 	#return render_template("learn.html")
+@app.route("/reload", methods=['POST'])
+def reload():
+	with open('static/flag', 'w') as f:
+		f.write('1')
+	return redirect('/')
 
 @app.route("/video")
 def video():
 	return render_template("video.html", video="./video.mp4")
-
-
 if __name__ == "__main__":
         app.run(debug=True)
