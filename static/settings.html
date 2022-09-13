@@ -2,95 +2,10 @@
                   <html>
                         <head>
                                 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-                                
+                                <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.4.0/Chart.min.js"></script>
+                                <link rel="stylesheet" href="static/style.css">
                                 <title>project</title>
                                 <meta charset="utf-8">
-                                <style>
-                                    @font-face{
-                                        font-family: PragmataPro;
-                                        src: url(PragmataPro-Regular.ttf)
-                                        f
-                                    }
-                                    body{
-                                        font-size: 18px;
-                                        background-color: #36393f;
-                                        color: white
-                                    }
-                                    #lr-v, #bs-v, #nohl-v, #nr-v{
-                                        padding-bottom: 20px;
-                                    }
-                                    .wrapper{
-                                        display: grid;
-                                    }
-                                    #left-side {
-                                        grid-column: 1;
-                                        grid-row: 1/1/2/3;
-                                        text-align: center;
-                                        border-left: 10px solid #202225;
-                                        border-right: 10px solid #202225;
-                                    }
-                                    
-                                    #left-side2 {
-                                        grid-column: 1;
-                                        grid-row: 2/1/2/3;
-                                        text-align: center;
-                                        border-left: 10px solid #202225;
-                                        border-right: 10px solid #202225;
-                                        border-top: 10px solid #202225;
-                                        padding-bottom: 10px;
-                                    }
-                                    #right-side{
-                                        grid-area: 1 / col2-start / last-line / 3;
-                                        border-right: 10px solid #202225;
-                                    }
-                                    #right-side2{
-                                        text-align: center;
-                                        grid-area: 2 / col2-start / last-line / 3;
-                                        border-right: 10px solid #202225;
-                                        border-top: 10px solid #202225;
-                                    }
-                                    #right-side3{
-                                        text-align: right;
-                                        padding-right: 2%;
-                                        grid-area: 1/2/3/3;
-                                        border-right: 10px solid #202225
-                                    }
-                                    #button {
-                                        clear:both;
-                                        padding: 5px;
-                                        text-align: center;
-                                    }
-                                    #submit {
-                                        clear: both;
-                                        border: none;
-                                        color: white;
-                                        text-align: center;
-                                        text-decoration: none;
-                                        display: inline-block;
-                                        font-size: 16px;
-                                        padding-left: 16px;
-                                        padding-right: 16px;
-                                        padding-top: 16px;
-                                        padding-bottom: 16px;
-                                        margin: 4px 2px;
-                                        background-color: #292b2f;
-                                        border-radius: 8px;
-                                    }
-
-                                    .space {
-                                        clear: both;
-                                        padding: 10px;
-                                        background-color: #202225;
-                                    }
-
-                                    #submit:hover {
-                                        background-color: #3e4248;
-                                    }
-                                    form {
-                                        display: inline;
-                                        width:auto;
-                                    }
-                                </style>
                         </head>
                         <body>
                                 <form action="{{url_for('learn')}}" method="get">
@@ -101,12 +16,13 @@
                                                 <source src="static/video.mp4" type="video/mp4" alt="reload">
                                             </video>
                                            
-                                            
                                             <script type='text/javascript'>
                                                 function hasEnded(){
+                                                  setTimeout(function(){
                                                   document.querySelector("#video > source").src = "static/video.mp4?t=" + Date.now();
                                                   document.getElementById('video').load();
                                                   document.getElementById('video').play();
+                                                }, 10000);
                                                 }
                                               </script>
                                             
@@ -130,6 +46,8 @@
                                             <h1>Settings</h1>
                                             <div id="lr-h"> </div>
                                             <div id="lr-v"> </div>
+                                            <div id="tu-h"> </div>
+                                            <div id="tu-v"> </div>
                                             <div id="bs-h"> </div>
                                             <div id="bs-v"> </div>
                                             <div id="nohl-h"> </div>
@@ -152,12 +70,6 @@
                                     <div id="button">
                                         <input type="submit" name ="submit" value="start new" id="submit">
                                         <input type="submit" name ="submit" value="resume learning" id="submit">
-                                        <script type='text/javascript'>
-                                            document.getElementById("submit").addEventListener("click", clicked);
-                                            function clicked(){
-                                                location.reload();
-                                            }
-                                          </script>
                                 </form>
                                 
                                 <form action="{{url_for('reload')}}" method="post">
@@ -167,6 +79,7 @@
                                 <script>
                                         function settings(){
                                                 document.getElementById("lr-v").innerHTML = '<select name="lr" id="lr" onchange="show_settings_values()"><option>0.01</option><option>0.001</option><option>0.0001</option><option>0.00001</option><option>0.000001</option></select>';
+                                                document.getElementById("tu-v").innerHTML = '<select name="tu" id="tu" onchange="show_settings_values()"><option>50</option><option>100</option><option>250</option><option>500</option><option>1000</option><option>10000</option></select>';
                                                 document.getElementById("bs-v").innerHTML = '<input type="range" name="bs" min="16" max="256" step="16" id="bs" onchange="show_settings_values()">';
                                                 document.getElementById("nohl-v").innerHTML = '<input type="range" name="nohl" min="1" max="3" id="nohl" onchange="show_settings_values(), show_sliders()">';
                                                 document.getElementById("nr-v").innerHTML = '<input type="range" name="nr" min="500" max="5000" step="500" id="nr" onchange="show_settings_values()">';
@@ -181,6 +94,7 @@
                                                 var nr = document.getElementById("nr").value;
                                                 
                                                 document.getElementById("lr-h").innerHTML = 'learning rate';
+                                                document.getElementById("tu-h").innerHTML = 'target update';
                                                 document.getElementById("bs-h").innerHTML = 'batch size: ' + bs;
                                                 document.getElementById("nohl-h").innerHTML = 'number of hidden layer(s): ' + nohl;
                                                 document.getElementById("nr-h").innerHTML = 'number of episodes: ' + nr;
@@ -238,8 +152,126 @@
                                         function init(){
                                                 settings();
                                         }
-
+                                        
                                         window.addEventListener("load", init);
                                 </script>
+                                <div id="progress">
+                                    <span>Episode:</span>
+                                    <span id="episode">0</span><br />
+                                   <progress id="progress_out" max="100" value="0"> 70% </progress>
+                                </div>
+                                <div id="charts">
+                                    <div id="chart1">
+                                        <canvas id="mycanvas"></canvas>
+                                    </div>
+                                    <div id="chart2">
+                                        <canvas id="mycanvas2"></canvas>
+                                    </div>
+                                </div>
+                                   <script type="text/javascript">
+                                      function loadFile(filePath) {
+                                  var result = null;
+                                  var xmlhttp = new XMLHttpRequest();
+                                  xmlhttp.open("GET", filePath, false);
+                                  xmlhttp.send();
+                                  if (xmlhttp.status==200) {
+                                    result = xmlhttp.responseText;
+                                  }
+                                  return result;
+                                }
+
+                                // create initial empty chart
+                                    var ctx_live = document.getElementById("mycanvas");
+                                    var myChart = new Chart(ctx_live, {
+                                        type: 'line',
+                                        data: {
+                                            labels: [],
+                                            datasets: [{
+                                                data: [],
+                                                borderWidth: 1,
+                                                borderColor:'#00c0ef',
+                                                label: 'liveCount',
+                                            }]
+                                        },
+                                        options: {
+                                        responsive: true,
+                                        title: {
+                                        display: true,
+                                        text: "Loss Curve",
+                                        },
+                                        legend: {
+                                        display: false
+                                        },
+                                        scales: {
+                                        yAxes: [{
+                                        ticks: {
+                                            autoSkip: true,
+                                            maxTicksLimit: 40
+                                        }
+                                        }]
+                                        }
+                                        }
+                                    });
+                                
+
+                                    var ctx_live = document.getElementById("mycanvas2");
+                                    var myChart2 = new Chart(ctx_live, {
+                                        type: 'line',
+                                        data: {
+                                            labels: [],
+                                            datasets: [{
+                                                data: [],
+                                                borderWidth: 1,
+                                                borderColor:'#00c0ef',
+                                                label: 'liveCount',
+                                            }]
+                                        },
+                                        options: {
+                                        responsive: true,
+                                        title: {
+                                        display: true,
+                                        text: "Episode Durations",
+                                        },
+                                        legend: {
+                                        display: false
+                                        },
+                                        scales: {
+                                        yAxes: [{
+                                        ticks: {
+                                            autoSkip: true,
+                                            maxTicksLimit: 40
+                                        }
+                                        }]
+                                        }
+                                        }
+                                    });
+
+                                    const interval = setInterval(function() {
+                                    var progress = null;
+                                    var loss = null;
+                                    var epis = null;
+                                    progress = loadFile('static/dfile.txt');
+                                    loss = loadFile('static/loss.txt');
+                                    epis = loadFile('static/episodes.txt');
+                                    var lossArr = loss.split(',');
+                                    var progArr = progress.split(',');
+                                    var episArr = epis.split(',');
+                                        document.getElementById('progress_out').value=progArr[0];
+                                        document.getElementById("episode").innerHTML = progArr[1];
+                                        if(myChart.data.labels[myChart.data.labels.length -1]!=lossArr[1]){
+                                            myChart.data.labels.push(lossArr[1]);
+                                            myChart.data.datasets[0].data.push(lossArr[0]);
+                                        }
+                                        // re-render the chart
+                                        myChart.update();
+                                        if(myChart2.data.labels[myChart2.data.labels.length -1]!=episArr[1]){
+                                            myChart2.data.labels.push(episArr[1]);
+                                            myChart2.data.datasets[0].data.push(episArr[0]);
+                                        }
+                                        // re-render the chart
+                                        myChart2.update();
+                                    }, 250);
+                                
+                                    </script>
                         </body>
                   </html>

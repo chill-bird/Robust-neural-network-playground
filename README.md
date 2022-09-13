@@ -6,16 +6,8 @@ Install requirements.
 
 ### Interface
 
-You need the neural_net.py in the same directory as the html_interface.py.
-Install everything from the ML-Part.
-To run it: 
-1) You need to have flask installed.
-2) Direct to the directory where you have the html_interface.py
-3) Type "export FLASK_APP=html_interface.py"
-4) Type "flask run"
-(Attention: Steps 3) and 4) are working just under Linux! On other distributions it might be different.)
-5) If everything works, you will get an URL with a port
-6) Copy paste this in a browser-window
+You need the neural_net.py in the same directory.
+Install everything from the ML-Part. You need a random mp4-video in the same directory. The video has to be named 'video.mp4'.
 
 ### Import render_graphics
 

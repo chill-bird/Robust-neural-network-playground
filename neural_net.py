@@ -4,28 +4,25 @@ import os
 import math
 import random
 import glob
-from tabnanny import check
+from venv import create
 import imageio
-import csv
+from threading import Thread
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
 from collections import namedtuple, deque
 from itertools import count
-from PIL import Image
-import PIL.ImageDraw as ImageDraw
 import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 import torchvision.transforms as T
-import matplotlib.animation
 import io
 import sys
 from tqdm import tqdm
 import requests
 import pandas as pd
-import ffmpegio
+from threading import Thread
 path = os.path.abspath(os.getcwd())
 ui_path = path + '/ui'
 sys.path.insert(1, ui_path)
@@ -128,6 +125,9 @@ def set_batch(size):
     global BATCH_SIZE
     BATCH_SIZE = size
 
+def set_targetUpdate(x):
+    global TARGET_UPDATE
+    TARGET_UPDATE = x
 
 def set_nrEpisodes(x):
     global num_episodes
@@ -249,6 +249,10 @@ def optimize_model():
     return loss
 
 
+def createVideo(frames):
+    imageio.mimwrite(os.path.join('./static/', 'render.gif'), frames, fps=30)
+    os.system("ffmpeg -y -i ./static/render.gif -movflags faststart -pix_fmt yuv420p -vf \"scale=trunc(iw/2)*2:trunc(ih/2)*2\" ./static/video.mp4")
+
 global frames, frame_count, a, best_episode, memory, new_best, counter, best_frames
 memory = ReplayMemory(65536)
 def start_learning():
@@ -264,11 +268,6 @@ def start_learning():
     counter =0
     best_frames = []
     new_best = False     #variable for new best episode length
-    if os.path.exists("loss.csv"):
-        os.remove("loss.csv")
-    if os.path.exists("dfile.txt"):
-        os.remove("dfile.txt")
-    
     
     global episode
     episode = 0
@@ -283,6 +282,8 @@ def start_learning():
         best_episode = checkpoint['best_episode']
         best_frames = checkpoint['best_frames']
         loss_history = checkpoint['loss_history']
+        global episode_durations
+        episode_durations = checkpoint['episode_durations']
         print(num_episodes)
         policy_net.eval()
         with open('static/flag', 'w') as f:
@@ -291,11 +292,8 @@ def start_learning():
     for i_episode in tqdm(range(num_episodes)):
         frames = []
         counter += 1
-        with open('dfile.txt', 'w') as f:
-            f.write(str(100 * (counter / num_episodes)))
-        f = open("dfile.txt", 'rb')
-        files = {"file": (f.name, f, "multipart/form-data")}
-        # b = requests.post(url="http://127.0.0.1:5000/video", files=files)
+        with open('static/dfile.txt', 'w') as f:
+            f.write(str(100 * (counter / num_episodes))+','+str(i_episode+episode))
 
         # Initialize the environment and state
         # create random state
@@ -344,13 +342,13 @@ def start_learning():
                 break
         frame_count = 0
         y = pd.Series([float(x) for x in loss_history]).rolling(20).mean().tolist()
-        x2 = np.arange(len(episode_durations))
-        y2 = pd.Series(episode_durations).rolling(100).mean()
-        with open('loss.txt', 'w') as f:
-            f.write(str(y[i_episode]))
-        f = open("loss.txt", 'rb')
-        files = {"file": (f.name, f, "multipart/form-data")}
-        # b = requests.post(url="http://127.0.0.1:5000/video", files=files)
+        y2 = pd.Series(episode_durations).rolling(20).mean()
+        line=str(y[i_episode])
+        with open('static/loss.txt', 'w') as f:
+            f.write(line+','+str(i_episode+episode))
+        line=str(y2[i_episode])
+        with open('static/episodes.txt', 'w') as f:
+            f.write(line+','+str(i_episode+episode)) 
         # resets new_best 
         new_best = False
         # Update the target neFtwork, copying all weights and biases in DQN
@@ -360,6 +358,8 @@ def start_learning():
         #this figures out if the last episode is the new best episode    
         best_episode = max(best_episode, int(episode_durations[-1]))
         #a is set to the new best episode
+
+
         if(i_episode >= 99 and i_episode%100 == 0):
             for i in float_states:
                 if(i[0]==123 and i[1] == 123):
@@ -369,8 +369,11 @@ def start_learning():
                 else:
                     frame = render(i[0],i[1],False,i_episode+episode, int(episode_durations[-1])) #renders frame
                     frames.append(frame) #appends frame to frame list
-            imageio.mimwrite(os.path.join('./static/', 'render.gif'), frames, fps=30)
-            os.system("ffmpeg -y -i ./static/render.gif -movflags faststart -pix_fmt yuv420p -vf \"scale=trunc(iw/2)*2:trunc(ih/2)*2\" ./static/video.mp4")
+            thread = Thread(target=createVideo(frames))
+            thread.start()
+            thread.join()
+            
+            
 
         if(a!=best_episode):
             new_best = True
@@ -395,7 +398,8 @@ def start_learning():
                 'target_state_dict': target_net.state_dict(),
                 'loss_history': loss_history,
                 'best_episode': best_episode,
-                'best_frames': best_frames}, "model.pt")
+                'best_frames': best_frames,
+                'episode_durations': episode_durations}, "model.pt")
                 print("true")
                 f.close()
                 with open('static/flag', 'w') as f:
@@ -403,11 +407,6 @@ def start_learning():
                     f.close
                 break
     print('Complete')
-    imageio.mimwrite(os.path.join('./static/', 'render.gif'), best_frames, fps=30)
-    os.system("ffmpeg -y -i ./static/render.gif -movflags faststart -pix_fmt yuv420p -vf \"scale=trunc(iw/2)*2:trunc(ih/2)*2\" ./static/video.mp4")
-    # Initialize the plot
-    #combines renderings into gif
-    #os.system("ffmpeg -y -i ./static/render.gif -movflags faststart -pix	_fmt yuv420p -vf \"scale=trunc(iw/2)*2:trunc(ih/2)*2\" video.mp4")
-    #print("done")
-def get_frames():
-    return frames
+    thread = Thread(target=createVideo(frames))
+    thread.start()
+    thread.join()

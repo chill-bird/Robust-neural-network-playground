@@ -7,10 +7,18 @@ import matplotlib.pyplot as plt
 
 app = Flask(__name__, template_folder='static')
 
+if os.path.exists("static/loss.txt"):
+	os.remove("static/loss.txt")
+if os.path.exists("static/dfile.txt"):
+	os.remove("static/dfile.txt")
+if os.path.exists("static/episodes.txt"):
+	os.remove("static/episodes.txt")	
+
 @app.route("/")
 def home():
+	if os.path.exists("static/dfile.txt"):
+		os.remove("static/dfile.txt")
 	return render_template("settings.html")
-
 
 
 
@@ -25,9 +33,11 @@ def learn():
 		if os.path.exists("model.pt"):
 			os.remove("model.pt")
 		if os.path.exists("static/render.mp4"):
-			os.os.remove("static/render.mp4")
+			os.remove("static/render.mp4")
+		
 
 	lr = float(request.args.get('lr'))
+	tu = int(request.args.get('tu'))
 	bs = int(request.args.get('bs'))
 	nohl = int(request.args.get('nohl'))
 	nr = int(request.args.get('nr'))
@@ -60,6 +70,7 @@ def learn():
 
 	neural_net.set_policy_net()
 	neural_net.set_learningRate(lr)
+	neural_net.set_targetUpdate(tu)
 	neural_net.set_nrEpisodes(nr)
 	neural_net.start_learning()
 	return redirect('/')
