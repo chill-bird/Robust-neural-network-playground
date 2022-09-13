@@ -8,8 +8,6 @@ from venv import create
 import imageio
 from threading import Thread
 import numpy as np
-import matplotlib
-import matplotlib.pyplot as plt
 from collections import namedtuple, deque
 from itertools import count
 import torch
@@ -29,11 +27,10 @@ sys.path.insert(1, ui_path)
 from render_graphics import render
 from physics import step, State
 
-"""if(torch.cuda.is_available()):
+if(torch.cuda.is_available()):
     device = torch.device("cuda")
 else:
-    device = torch.device("cpu")"""
-device = torch.device("cuda")
+    device = torch.device("cpu")
 
 #env = gym.make('CartPole-v0').unwrapped
 
