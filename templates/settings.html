@@ -82,10 +82,11 @@
                                         function settings(){
                                                 document.getElementById("lr-v").innerHTML = '<select name="lr" id="lr" onchange="show_settings_values()"><option>0.01</option><option>0.001</option><option>0.0001</option><option>0.00001</option><option>0.000001</option></select>';
                                                 document.getElementById("bs-v").innerHTML = '<input type="range" name="bs" min="32" max="1024" step="32" id="bs" onchange="show_settings_values()">';
-                                                document.getElementById("nohl-v").innerHTML = '<input type="range" name="nohl" min="1" max="3" id="nohl" onchange="show_settings_values()">';
+                                                document.getElementById("nohl-v").innerHTML = '<input type="range" name="nohl" min="1" max="3" id="nohl" onchange="show_settings_values(), show_sliders()">';
                                                 document.getElementById("nr-v").innerHTML = '<input type="range" name="nr" min="500" max="5000" id="nr" onchange="show_settings_values()">';
                                         
                                                 show_settings_values();
+                                                show_sliders();
                                         }
 
                                         function show_settings_values(){
@@ -97,8 +98,6 @@
                                                 document.getElementById("bs-h").innerHTML = 'batch size: ' + bs;
                                                 document.getElementById("nohl-h").innerHTML = 'number of hidden layer(s): ' + nohl;
                                                 document.getElementById("nr-h").innerHTML = 'number of episodes: ' + nr;
-
-                                                show_sliders();
                                         }
 
                                         function show_sliders(){
