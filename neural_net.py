@@ -1,10 +1,7 @@
-from operator import truediv
-from re import I
 import os
 import math
 import random
 import glob
-from venv import create
 import imageio
 from threading import Thread
 import numpy as np
@@ -17,10 +14,7 @@ import torch.nn.functional as F
 import torchvision.transforms as T
 import io
 import sys
-from tqdm import tqdm
-import requests
 import pandas as pd
-from threading import Thread
 path = os.path.abspath(os.getcwd())
 ui_path = path + '/ui'
 sys.path.insert(1, ui_path)
@@ -31,8 +25,6 @@ if(torch.cuda.is_available()):
     device = torch.device("cuda")
 else:
     device = torch.device("cpu")
-
-#env = gym.make('CartPole-v0').unwrapped
 
 
 
@@ -286,7 +278,7 @@ def start_learning():
         with open('static/flag', 'w') as f:
                     f.write('0')
                     f.close
-    for i_episode in tqdm(range(num_episodes)):
+    for i_episode in range(num_episodes):
         frames = []
         counter += 1
         with open('static/dfile.txt', 'w') as f:
@@ -368,7 +360,6 @@ def start_learning():
                     frames.append(frame) #appends frame to frame list
             thread = Thread(target=createVideo(frames))
             thread.start()
-            thread.join()
             
             
 
@@ -404,6 +395,6 @@ def start_learning():
                     f.close
                 break
     print('Complete')
-    thread = Thread(target=createVideo(frames))
+    thread = Thread(target=createVideo(best_frames))
     thread.start()
-    thread.join()
+            
