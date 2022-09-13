@@ -3,6 +3,7 @@
     src: url(PragmataPro-Regular.ttf);
 }
 body{
+    font-family: PragmataPro;
     font-size: 18px;
     background-color: #36393f;
     color: white
