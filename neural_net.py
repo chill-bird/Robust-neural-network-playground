@@ -331,7 +331,7 @@ def start_learning():
                 break
         frame_count = 0
         y = pd.Series([float(x) for x in loss_history]).rolling(20).mean().tolist()
-        y2 = pd.Series(episode_durations).rolling(20).mean()
+        y2 = pd.Series(episode_durations).rolling(100).mean()
         line=str(y[i_episode])
         with open('static/loss.txt', 'w') as f:
             f.write(line+','+str(i_episode+episode))
